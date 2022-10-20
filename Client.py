@@ -36,9 +36,6 @@ top.title("Chatter")
 messages_frame = tkinter.Frame(top)
 my_msg = tkinter.StringVar()  # For the messages to be sent.
 
-def click(*args):
-    entry_field.delete(0, 'end')
-  
 # call function when we click in the box
 def focusIn(entry, placeholder):
     if entry.get() == placeholder:
