@@ -35,6 +35,20 @@ top.title("Chatter")
 
 messages_frame = tkinter.Frame(top)
 my_msg = tkinter.StringVar()  # For the messages to be sent.
+
+def click(*args):
+    entry_field.delete(0, 'end')
+  
+# call function when we click in the box
+def focusIn(entry, placeholder):
+    if entry.get() == placeholder:
+        entry.delete(0, tkinter.END)
+        
+# call function when we click outside box
+def focusOut(entry, placeholder):
+    if entry.get() == "":
+        entry.insert(0, placeholder)
+
 my_msg.set("Type your messages here.")
 scrollbar = tkinter.Scrollbar(messages_frame)  # To navigate through past messages.
 # Following will contain the messages.
@@ -44,7 +58,10 @@ msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
 msg_list.pack()
 messages_frame.pack()
 
+placeholder = "Type your messages here."
 entry_field = tkinter.Entry(top, textvariable=my_msg)
+entry_field.bind("<FocusIn>", lambda e: focusIn(entry_field, placeholder))
+entry_field.bind("<FocusOut>", lambda e: focusOut(entry_field, placeholder))
 entry_field.bind("<Return>", send)
 entry_field.pack()
 send_button = tkinter.Button(top, text="Send", command=send)
