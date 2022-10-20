@@ -2,6 +2,7 @@
 """Server for multithreaded (asynchronous) chat application."""
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
+from time import strftime, localtime
 
 
 def accept_incoming_connections():
@@ -18,7 +19,7 @@ def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
 
     name = client.recv(BUFSIZ).decode("utf8")
-    welcome = 'Welcome %s! If you ever want to quit, type {quit} to exit.' % name
+    welcome = 'Welcome %s! If you ever want to quit, type {quit} to exit.\n' % name
     client.send(bytes(welcome, "utf8"))
     msg = "%s has joined the chat!" % name
     broadcast(bytes(msg, "utf8"))
@@ -27,7 +28,8 @@ def handle_client(client):  # Takes client socket as argument.
     while True:
         msg = client.recv(BUFSIZ)
         if msg != bytes("{quit}", "utf8"):
-            broadcast(msg, name + ": ")
+            local_time = strftime("%H:%M", localtime())
+            broadcast(msg, f"[{local_time}]  {name}: ")
         else:
             client.send(bytes("{quit}", "utf8"))
             client.close()
