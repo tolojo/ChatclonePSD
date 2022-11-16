@@ -5,6 +5,8 @@ from threading import Thread
 from time import strftime, localtime
 
 
+
+
 def accept_incoming_connections():
     """Sets up handling for incoming clients."""
     while True:
@@ -15,10 +17,12 @@ def accept_incoming_connections():
         Thread(target=handle_client, args=(client,)).start()
 
 
+
 def handle_client(client):  # Takes client socket as argument.
     """Handles a single client connection."""
 
     name = client.recv(BUFSIZ).decode("utf8")
+    users = name + "\n"
     welcome = 'Welcome %s! If you ever want to quit, type {quit} to exit.\n' % name
     client.send(bytes(welcome, "utf8"))
     msg = "%s has joined the chat!" % name
@@ -29,7 +33,7 @@ def handle_client(client):  # Takes client socket as argument.
         msg = client.recv(BUFSIZ)
         if msg != bytes("{quit}", "utf8"):
             local_time = strftime("%H:%M", localtime())
-            broadcast(msg, f"[{local_time}]  {name}: ")
+            broadcast(f"[{local_time}]  {name}: ")
         else:
             client.send(bytes("{quit}", "utf8"))
             client.close()
@@ -38,11 +42,13 @@ def handle_client(client):  # Takes client socket as argument.
             break
 
 
-def broadcast(msg, prefix=""):  # prefix is for name identification.
+def broadcast(prefix=""):  # prefix is for name identification.
     """Broadcasts a message to all the clients."""
-
+    users = ""
     for sock in clients:
-        sock.send(bytes(prefix, "utf8") + msg)
+        for client in clients:
+            users += client + "\n"
+        sock.send(bytes(prefix, "utf8") + users)
 
 
 clients = {}
