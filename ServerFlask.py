@@ -53,11 +53,11 @@ def userReg():
     data = json.dumps(request.get_json())
     data = json.loads(data)
     print(data)
-    login = users.find_one({"uname": data["uname"], "passwd": data["passwd"]})
+    login = users.insert_one({"uname": data["uname"], "passwd": data["passwd"]})
     if login:
-        return "User encontrado"
+        return "User Registado"
     else:
-        return "User não encontrado"
+        return "Houve um erro a criar o user"
 
 @app.route('/users/pkRegister', methods=['POST']) #registar a PK do user no server
 def pkRegister():
@@ -69,9 +69,9 @@ def pkRegister():
     return list(UserPK_pair.items())
 
 
-@app.route('/users/retrieveServerPK', methods=['GET']) #registar a PK do user no server
+@app.route('/retrieveServerPK', methods=['GET']) #registar a PK do user no server
 def getServerPK():
-    pk = open("server_private_key.pem", "r")
+    pk = open("server_public_key.pem", "r")
     print(pk.read())
     return pk.read()
 
@@ -86,11 +86,9 @@ def pkRetrieve(uname):
 if __name__ == "__main__":
     try:
         f = open("server_private_key.pem", "r")
-        print(f.read())
+
     except:
         print("File doesn't exist")
         genServerKeys()
-
-
 
     app.run(debug=True, host="127.0.0.1", port=3000)
