@@ -6,11 +6,13 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
 app = Flask(__name__)
-UserPK_pair = {
-}
+
+UserPK_pair = {}
+
 client = MongoClient("mongodb+srv://test:test@wpp-clone.ojoiv95.mongodb.net/?retryWrites=true&w=majority")
 db = client.get_database("userDatabase")
 users = db.User
+
 def genServerKeys():
     private_key = rsa.generate_private_key(
         public_exponent=65537,
@@ -36,28 +38,33 @@ def genServerKeys():
     with open('server_public_key.pem', 'wb') as f:
         f.write(pem)
 
-
 @app.route('/logIn', methods=['POST']) #Login do user
 def userAuth():
     data = json.dumps(request.get_json())
     data = json.loads(data)
-    print(data)
+    
     login = users.find_one({"uname": data["uname"], "passwd": data["passwd"]})
     if login:
-        return "User encontrado"
+        return "User encontrado", 200
     else:
-        return "User não encontrado"
+        return "User não encontrado", 404
 
 @app.route('/registerUser', methods=['POST']) #Login do user
 def userReg():
     data = json.dumps(request.get_json())
-    data = json.loads(data)
-    print(data)
-    login = users.insert_one({"uname": data["uname"], "passwd": data["passwd"]})
-    if login:
-        return "User Registado"
-    else:
-        return "Houve um erro a criar o user"
+    data = json.loads(data) 
+       
+    user_check = users.find_one({"uname": data["uname"]})
+        
+    if not user_check:
+        register = users.insert_one({"uname": data["uname"], "passwd": data["passwd"]})
+        if register:
+            return "User Registado", 200
+        else:
+            return "Houve um erro a criar o user", 404
+    else: 
+        return "Username já existe", 401
+        
 
 @app.route('/users/pkRegister', methods=['POST']) #registar a PK do user no server
 def pkRegister():
@@ -68,20 +75,15 @@ def pkRegister():
     print(UserPK_pair)
     return list(UserPK_pair.items())
 
-
-@app.route('/retrieveServerPK', methods=['GET']) #registar a PK do user no server
+@app.route('/retrieveServerPK', methods=['GET']) # devolve a PK do server
 def getServerPK():
     pk = open("server_public_key.pem", "r")
     print(pk.read())
     return pk.read()
 
-
-
-@app.route('/users/pkRegister/<uname>', methods=['GET']) #registar a PK do user no server
+@app.route('/users/pkRegister/<uname>', methods=['GET']) # devolve a PK do user no server
 def pkRetrieve(uname):
     return UserPK_pair[uname]
-
-
 
 if __name__ == "__main__":
     try:
