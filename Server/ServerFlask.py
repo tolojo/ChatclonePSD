@@ -1,9 +1,11 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify, send_file
 from pymongo import MongoClient
 import json
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography import x509
+from markupsafe import escape
 
 app = Flask(__name__)
 
@@ -12,6 +14,7 @@ UserPK_pair = {}
 client = MongoClient("mongodb+srv://test:test@wpp-clone.ojoiv95.mongodb.net/?retryWrites=true&w=majority")
 db = client.get_database("userDatabase")
 users = db.User
+
 
 def genServerKeys():
     private_key = rsa.generate_private_key(
@@ -38,52 +41,82 @@ def genServerKeys():
     with open('server_public_key.pem', 'wb') as f:
         f.write(pem)
 
-@app.route('/logIn', methods=['POST']) #Login do user
+@app.route('/logIn', methods=['POST'])  # Login do user
 def userAuth():
+    with open("server_private_key.pem", 'rb') as p:
+        privateKey = serialization.load_pem_private_key(
+            p.read(),
+            password=None,
+        )
     data = json.dumps(request.get_json())
     data = json.loads(data)
-    
-    login = users.find_one({"uname": data["uname"], "passwd": data["passwd"]})
-    if login:
+
+    login = users.find_one({"uname": data["uname"]})
+
+    passwd = login["passwd"].decode()
+    passwd = passwd.replace("b'","")
+    passwd = passwd.replace("'", "")
+
+    print(passwd)
+
+    passwd = privateKey.decrypt(
+        passwd,
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    aux = privateKey.decrypt(
+        login["passwd"],
+        padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),
+            label=None
+        )
+    )
+    if aux == passwd:
         return "User encontrado", 200
     else:
         return "User não encontrado", 404
 
-@app.route('/registerUser', methods=['POST']) #Login do user
+
+@app.route('/registerUser', methods=['POST'])  # Login do user
 def userReg():
     data = json.dumps(request.get_json())
-    data = json.loads(data) 
-       
+    data = json.loads(data)
+
     user_check = users.find_one({"uname": data["uname"]})
-        
+
     if not user_check:
-        register = users.insert_one({"uname": data["uname"], "passwd": data["passwd"]})
+        register = users.insert_one({"uname": data["uname"], "passwd": data["passwd"].encode()})
         if register:
             return "User Registado", 200
         else:
             return "Houve um erro a criar o user", 404
-    else: 
+    else:
         return "Username já existe", 401
-        
 
-@app.route('/users/pkRegister', methods=['POST']) #registar a PK do user no server
+
+@app.route('/users/pkRegister', methods=['POST'])  # registar a PK do user no server
 def pkRegister():
     data = json.dumps(request.get_json())
     data = json.loads(data)
     print(data)
-    UserPK_pair[data["uname"]] = "PK teste1" # sub pk teste1 por futura PK
+    UserPK_pair[data["uname"]] = "PK teste1"  # sub pk teste1 por futura PK
     print(UserPK_pair)
     return list(UserPK_pair.items())
 
-@app.route('/retrieveServerPK', methods=['GET']) # devolve a PK do server
-def getServerPK():
-    pk = open("server_public_key.pem", "r")
-    print(pk.read())
-    return pk.read()
 
-@app.route('/users/pkRegister/<uname>', methods=['GET']) # devolve a PK do user no server
+@app.route('/retrieveServerPK', methods=['GET'])  # devolve a PK do server
+def getServerPK():
+    return send_file("server_public_key.pem", as_attachment=True)
+
+
+@app.route('/users/pkRegister/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):
     return UserPK_pair[uname]
+
 
 if __name__ == "__main__":
     try:
