@@ -19,16 +19,16 @@ def data_to_json(uname, passwd):
             p.read()
         )
 
-    passwd = publicKey.encrypt(passwd.encode('utf8'), padding.OAEP(
-         mgf=padding.MGF1(algorithm=hashes.SHA256()),
-         algorithm=hashes.SHA256(),
+    passwd = publicKey.encrypt(passwd.encode(), padding.OAEP(
+        mgf=padding.MGF1(algorithm=hashes.SHA256()),
+        algorithm=hashes.SHA256(),
         label=None
-  ))
-
+    ))
+    passwd = passwd.decode('latin1')
 
     user_dict = {
         'uname': uname,
-        'passwd': str(passwd)
+        'passwd': passwd
     }
     return user_dict
 
@@ -46,7 +46,7 @@ passwordLabel = Label(tkWindow, text="Password").grid(row=1, column=0)
 password = StringVar()
 passwordEntry = Entry(tkWindow, textvariable=password, show='*').grid(row=1, column=1)
 # login button
-loginButton = Button(tkWindow, text="Login", command=(lambda: requests.post(url="http://127.0.0.1:3000/registerUser",
+loginButton = Button(tkWindow, text="Register", command=(lambda: requests.post(url="http://127.0.0.1:3000/registerUser",
                                                                             json=data_to_json(username.get(),
                                                                                               password.get())))).grid(
     row=4, column=0)

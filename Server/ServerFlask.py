@@ -4,7 +4,7 @@ import json
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
-from cryptography import x509
+
 from markupsafe import escape
 
 app = Flask(__name__)
@@ -48,16 +48,14 @@ def userAuth():
             p.read(),
             password=None,
         )
+
     data = json.dumps(request.get_json())
     data = json.loads(data)
 
     login = users.find_one({"uname": data["uname"]})
 
-    passwd = login["passwd"].decode()
-    passwd = passwd.replace("b'","")
-    passwd = passwd.replace("'", "")
-
-    print(passwd)
+    passwd = login["passwd"]
+    aux = data["passwd"].encode("latin1")
 
     passwd = privateKey.decrypt(
         passwd,
@@ -68,13 +66,17 @@ def userAuth():
         )
     )
     aux = privateKey.decrypt(
-        login["passwd"],
+        aux,
         padding.OAEP(
             mgf=padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(),
             label=None
         )
     )
+    passwd = passwd.decode('utf-8')
+    aux = aux.decode('utf-8')
+
+
     if aux == passwd:
         return "User encontrado", 200
     else:
@@ -83,13 +85,21 @@ def userAuth():
 
 @app.route('/registerUser', methods=['POST'])  # Login do user
 def userReg():
+    with open("server_private_key.pem", 'rb') as p:
+        privateKey = serialization.load_pem_private_key(
+            p.read(),
+            password=None,
+        )
+
     data = json.dumps(request.get_json())
     data = json.loads(data)
+    aux = data["passwd"].encode("latin1")
 
     user_check = users.find_one({"uname": data["uname"]})
 
+
     if not user_check:
-        register = users.insert_one({"uname": data["uname"], "passwd": data["passwd"].encode()})
+        register = users.insert_one({"uname": data["uname"], "passwd": aux})
         if register:
             return "User Registado", 200
         else:
@@ -102,9 +112,8 @@ def userReg():
 def pkRegister():
     data = json.dumps(request.get_json())
     data = json.loads(data)
-    print(data)
+
     UserPK_pair[data["uname"]] = "PK teste1"  # sub pk teste1 por futura PK
-    print(UserPK_pair)
     return list(UserPK_pair.items())
 
 
