@@ -1,8 +1,36 @@
 #!/usr/bin/env python3
 """Script for Tkinter GUI chat client."""
+import tkinter
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
-import tkinter
+
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
+
+def genClientKeys():
+    private_key = rsa.generate_private_key(
+        public_exponent=65537,
+        key_size=2048,
+    )
+
+    public_key = private_key.public_key()
+    pem = private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption()
+    )
+
+    with open('client_private_key.pem', 'wb') as f:
+        f.write(pem)
+
+    pem = public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+
+    with open('client_public_key.pem', 'wb') as f:
+        f.write(pem)
 
 
 def receive():
@@ -79,6 +107,8 @@ ADDR = (HOST, PORT)
 
 client_socket = socket(AF_INET, SOCK_STREAM)
 client_socket.connect(ADDR)
+genClientKeys()
+
 
 receive_thread = Thread(target=receive)
 receive_thread.start()
