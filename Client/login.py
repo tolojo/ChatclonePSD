@@ -27,7 +27,7 @@ def data_to_json(uname, passwd):
         algorithm=hashes.SHA256(),
         label=None
     ))
-    passwd = str(passwd)
+    passwd = passwd.decode('latin1')
 
     user_dict = {
         'uname': uname,
