@@ -22,9 +22,11 @@ def combine_funcs(*funcs):
             f(*args, **kwargs)
     return combined_func
 
+# Root window
 tkWindow = Tk()  
 tkWindow.title('Register')
-#username label and text entry box
+
+# Username label and text entry box
 usernameLabel = Label(tkWindow, text="Username:")
 usernameLabel.grid(row = 0, column = 0, sticky = W, pady = 2)
 
@@ -32,7 +34,7 @@ username = StringVar()
 usernameEntry = Entry(tkWindow, textvariable=username)  
 usernameEntry.grid(row = 0, column = 1, sticky = W, pady = 2, columnspan = 2)
 
-#password label and password entry box
+# Password label and password entry box
 passwordLabel = Label(tkWindow,text="Password:")
 passwordLabel.grid(row = 1, column = 0, sticky = W, pady = 2)
 
@@ -43,7 +45,7 @@ passwordEntry.grid(row = 1, column = 1, sticky = W, pady = 2, columnspan = 2)
 response = Label(tkWindow,text="")
 response.grid(row = 5, column = 1, sticky = W, pady = 2)
 
-#register button
+# Register button
 registerButton = Button(tkWindow, text="Register", command = combine_funcs((lambda: response.config(text=request_response(username, password))), (lambda: requests.post(url = "http://127.0.0.1:3000/registerUser", json = data_to_dict(username.get(), password.get())))))
 
 button_exit = Button(tkWindow, text = "Exit", command = close)
