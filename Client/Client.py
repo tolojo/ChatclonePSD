@@ -3,7 +3,10 @@
 import tkinter
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
+import shutil
+import socket
 
+import requests
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
@@ -31,6 +34,15 @@ def genClientKeys():
 
     with open('client_public_key.pem', 'wb') as f:
         f.write(pem)
+
+def sendClientPK():
+    hostname = socket.gethostname()
+    user_dict = {
+        'uname': "tomas",
+        'ip': socket.gethostbyname(hostname)
+    }
+    with open('client_public_key.pem', 'rb') as f:
+        r = requests.post('http://127.0.0.1:3000/users/pkRegister', files={'client_public_key.pem': f}, json = user_dict)
 
 
 def receive():
@@ -104,11 +116,10 @@ else:
 
 BUFSIZ = 1024
 ADDR = (HOST, PORT)
-
+genClientKeys()
+sendClientPK()
 client_socket = socket(AF_INET, SOCK_STREAM)
 client_socket.connect(ADDR)
-genClientKeys()
-
 
 receive_thread = Thread(target=receive)
 receive_thread.start()

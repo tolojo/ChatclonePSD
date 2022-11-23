@@ -110,10 +110,17 @@ def userReg():
 
 @app.route('/users/pkRegister', methods=['POST'])  # registar a PK do user no server
 def pkRegister():
+    print(request.get_json())
+
     data = json.dumps(request.get_json())
     data = json.loads(data)
 
-    UserPK_pair[data["uname"]] = "PK teste1"  # sub pk teste1 por futura PK
+    f = request.files['client_public_key.pem']
+    f.save(data["uname"] + "_" + f.filename)
+
+    with open(data["uname"]+'_client_public_key.pem', 'r') as f:
+        UserPK_pair[data["uname"]] = {[line.strip() for line in f], data["ip"]}  # sub pk teste1 por futura PK
+
     return list(UserPK_pair.items())
 
 
