@@ -78,7 +78,9 @@ def userAuth():
 
 
     if aux == passwd:
+        UserPK_pair[data["uname"]] = {'ip': data["ip"]}
         return "User encontrado", 200
+
     else:
         return "User não encontrado", 404
 
@@ -108,20 +110,19 @@ def userReg():
         return "Username já existe", 401
 
 
-@app.route('/users/pkRegister', methods=['POST'])  # registar a PK do user no server
-def pkRegister():
-    print(request.get_json())
 
-    data = json.dumps(request.get_json())
-    data = json.loads(data)
 
-    f = request.files['client_public_key.pem']
-    f.save(data["uname"] + "_" + f.filename)
+@app.route('/users/pkRegister/<uname>', methods=['POST'])  # registar a PK do user no server
+def pkRegister(uname):
+    file = request.files['file']
+    file.save(uname + "_" + file.filename)
+    aux = {
+        UserPK_pair[uname].get('ip'),
+        uname + "_" + file.filename,
+    }
+    UserPK_pair[uname] = aux  # sub pk teste1 por futura PK
 
-    with open(data["uname"]+'_client_public_key.pem', 'r') as f:
-        UserPK_pair[data["uname"]] = {[line.strip() for line in f], data["ip"]}  # sub pk teste1 por futura PK
-
-    return list(UserPK_pair.items())
+    return "Key adicionada ao dicionario"
 
 
 @app.route('/retrieveServerPK', methods=['GET'])  # devolve a PK do server
@@ -131,7 +132,7 @@ def getServerPK():
 
 @app.route('/users/pkRegister/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):
-    return UserPK_pair[uname]
+    return list(UserPK_pair[uname])
 
 
 if __name__ == "__main__":
