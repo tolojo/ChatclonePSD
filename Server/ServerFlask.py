@@ -115,10 +115,11 @@ def userReg():
 @app.route('/users/pkRegister/<uname>', methods=['POST'])  # registar a PK do user no server
 def pkRegister(uname):
     file = request.files['file']
-    file.save(uname + "_" + file.filename)
+    savename ="clientPK/"+uname + "_" + file.filename
+    file.save(savename)
     aux = {
         UserPK_pair[uname].get('ip'),
-        uname + "_" + file.filename,
+        savename,
     }
     UserPK_pair[uname] = aux  # sub pk teste1 por futura PK
 
@@ -133,6 +134,14 @@ def getServerPK():
 @app.route('/users/pkRegister/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):
     return list(UserPK_pair[uname])
+
+@app.route('/users', methods=['GET'])  # devolve a PK do user no server
+def usersRetrieve():
+
+    userList = list(UserPK_pair)
+    userDict = {user: user for user in userList}
+    return userDict
+
 
 
 if __name__ == "__main__":

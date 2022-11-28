@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 
 
 def register(uname, passwd):
+    print(uname)
     response = requests.get(url="http://127.0.0.1:3000/retrieveServerPK")
 
     with open('server_public_key.pem', 'wb') as f:

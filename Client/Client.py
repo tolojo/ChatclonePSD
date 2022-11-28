@@ -10,11 +10,17 @@ import requests
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
+from Users_int import *
 from login import login
 from register import regInt
 
 serverUrl = 'http://127.0.0.1:3000/users/pkRegister'
 
+clients = {}
+addresses = {}
+HOST = ''
+PORT = 33000
+BUFSIZ = 1024
 
 def genClientKeys():
     private_key = rsa.generate_private_key(
@@ -44,16 +50,24 @@ def genClientKeys():
 def sendClientPK():
     files = {'file': open('client_public_key.pem', 'rb')}
     r = requests.post(serverUrl + "/" + username, files=files)
-    print(r.status_code)
 
 
 def logInRequest(uname, passwd):
     r = requests.post(url="http://127.0.0.1:3000/logIn", json=login(uname, passwd))
-    print(r.status_code)
     if (r.status_code == 200):
         global username
         username = uname
         sendClientPK()
+        connectedUserInt()
+
+
+
+
+        ADDR = (HOST, PORT)
+
+        SERVER = socket(AF_INET, SOCK_STREAM)
+        SERVER.bind(ADDR)
+
 
 
 def logIn_int():
