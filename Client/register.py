@@ -35,21 +35,21 @@ def register(uname, passwd):
 
 def regInt():
     # window
-    tkWindow = Tk()
+    tkWindow = Toplevel()
     tkWindow.geometry('400x150')
     tkWindow.title('Register')
-    # username label and text entry box
+    # uname label and text entry box
     usernameLabel = Label(tkWindow, text="User Name").grid(row=0, column=0)
-    username = StringVar()
-    usernameEntry = Entry(tkWindow, textvariable=username).grid(row=0, column=1)
+    uname = StringVar()
+    usernameEntry = Entry(tkWindow, textvariable=uname).grid(row=0, column=1)
     # password label and password entry box
     passwordLabel = Label(tkWindow, text="Password").grid(row=1, column=0)
     password = StringVar()
     passwordEntry = Entry(tkWindow, textvariable=password, show='*').grid(row=1, column=1)
     # login button
     loginButton = Button(tkWindow, text="Register", command=(lambda: requests.post(url="http://127.0.0.1:3000/registerUser",
-                                                                            json=register(username.get(),
-                                                                                              password.get())))).grid(
+                                                                            json=register(uname.get(),
+                                                                                          password.get())))).grid(
     row=4, column=0)
 
     tkWindow.mainloop()
