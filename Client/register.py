@@ -33,6 +33,9 @@ def register(uname, passwd):
     }
     return user_dict
 
+def close(tkWindow):
+    tkWindow.destroy()
+
 def regInt():
     # window
     tkWindow = Toplevel()
@@ -45,7 +48,7 @@ def regInt():
     # password label and password entry box
     passwordLabel = Label(tkWindow, text="Password").grid(row=1, column=0)
     password = StringVar()
-    passwordEntry = Entry(tkWindow, textvariable=password, show='*').grid(row=1, column=1)
+    passwordEntry = Entry(tkWindow, textvariable=password, show='*').grid(row=1, column=1, columnspan=2)
     # login button
     loginButton = Button(tkWindow, text="Register", command=(lambda: requests.post(url="http://127.0.0.1:3000/registerUser",
                                                                             json=register(uname.get(),
