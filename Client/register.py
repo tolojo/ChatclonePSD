@@ -32,23 +32,27 @@ def register(uname, passwd):
     }
     return user_dict
 
+def close(tkWindow):
+    tkWindow.destroy()
+
 def regInt():
     # window
     tkWindow = Tk()
-    tkWindow.geometry('400x150')
+    tkWindow.geometry()
     tkWindow.title('Register')
     # username label and text entry box
     usernameLabel = Label(tkWindow, text="User Name").grid(row=0, column=0)
     username = StringVar()
-    usernameEntry = Entry(tkWindow, textvariable=username).grid(row=0, column=1)
+    usernameEntry = Entry(tkWindow, textvariable=username).grid(row=0, column=1, columnspan=2)
     # password label and password entry box
     passwordLabel = Label(tkWindow, text="Password").grid(row=1, column=0)
     password = StringVar()
-    passwordEntry = Entry(tkWindow, textvariable=password, show='*').grid(row=1, column=1)
+    passwordEntry = Entry(tkWindow, textvariable=password, show='*').grid(row=1, column=1, columnspan=2)
     # login button
-    loginButton = Button(tkWindow, text="Register", command=(lambda: requests.post(url="http://127.0.0.1:3000/registerUser",
-                                                                            json=register(username.get(),
-                                                                                              password.get())))).grid(
-    row=4, column=0)
+    registerButton = Button(tkWindow, text="Register", command=(lambda: requests.post(url="http://127.0.0.1:3000/registerUser", json=register(username.get(), password.get())))).grid(
+    row=3, column=1, sticky=W, pady = 2)
+    
+    button_exit = Button(tkWindow, text = "Exit", command = (lambda: close(tkWindow)))
+    button_exit.grid(row = 3, column = 2, sticky = W, pady = 2)
 
     tkWindow.mainloop()
