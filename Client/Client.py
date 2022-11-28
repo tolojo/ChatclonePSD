@@ -14,13 +14,12 @@ from Users_int import *
 from login import login
 from register import regInt
 
-serverUrl = 'http://127.0.0.1:3000/users/pkRegister'
+serverUrl = 'http://127.0.0.1:3000'
 
-clients = {}
-addresses = {}
-HOST = ''
-PORT = 33000
-BUFSIZ = 1024
+
+def serverSocket():
+    SERVER.listen(5)
+    print("Server socket a correr")
 
 def genClientKeys():
     private_key = rsa.generate_private_key(
@@ -49,24 +48,22 @@ def genClientKeys():
 
 def sendClientPK():
     files = {'file': open('client_public_key.pem', 'rb')}
-    r = requests.post(serverUrl + "/" + username, files=files)
+    r = requests.post(serverUrl + "/users/pkRegister/" + username, files=files)
 
 
-def logInRequest(uname, passwd):
-    r = requests.post(url="http://127.0.0.1:3000/logIn", json=login(uname, passwd))
+def logInRequest(uname, passwd,tkWindow):
+    r = requests.post(url=serverUrl+"/logIn", json=login(uname, passwd))
     if (r.status_code == 200):
+        tkWindow.destroy()
         global username
         username = uname
         sendClientPK()
+        serverSocketThread = Thread(target=serverSocket())
+        serverSocketThread.start()
         connectedUserInt()
 
 
 
-
-        ADDR = (HOST, PORT)
-
-        SERVER = socket(AF_INET, SOCK_STREAM)
-        SERVER.bind(ADDR)
 
 
 def logIn_int():
@@ -92,7 +89,7 @@ def logIn_int():
     passwordEntry.grid(row = 1, column = 1, sticky = W, pady = 2, columnspan = 2)
     
     # login button
-    loginButton = Button(tkWindow, text="Login", command=(lambda: logInRequest(username.get(), password.get())))
+    loginButton = Button(tkWindow, text="Login", command=(lambda: logInRequest(username.get(), password.get(),tkWindow)))
     loginButton.grid(row = 3, column = 1, sticky = W, pady = 2, padx = 2)    
     
     registerButtom = Button(tkWindow, text="Register", command=(lambda: regInt()))
@@ -100,7 +97,21 @@ def logIn_int():
     
     tkWindow.mainloop()
 
+
+
+
+clients = {}
+addresses = {}
+
+HOST = socket.gethostname()
+PORT = 33000
+BUFSIZ = 1024
+
+
+SERVER = socket.socket()
+SERVER.bind((HOST,PORT))
 if __name__ == "__main__":
+
     genClientKeys()
     logIn_int()
 

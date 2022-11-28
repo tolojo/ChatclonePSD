@@ -3,20 +3,21 @@ import tkinter
 from ast import *
 import requests
 
+serverUrl = 'http://127.0.0.1:3000'
 
 def refreshUsers():
-    r = requests.get(url="http://127.0.0.1:3000/users")
+    r = requests.get(url=serverUrl+"/users")
     user = literal_eval(r.content.decode())
     print(type(user))
     for aux in user:
         print(aux)
         msg_list.insert(tkinter.END, aux)
     msg_list.insert(tkinter.END,"-----------------------")
-    return 0
+
 
 def connect(uname):
-    r = requests.get(url="http://127.0.0.1:3000/users/pkRegister/"+uname)
-    return 0
+    r = requests.get(url=serverUrl+"/users/pkRegister/"+uname)
+
 
 def connectedUserInt():
 
