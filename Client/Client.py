@@ -69,27 +69,36 @@ def logInRequest(uname, passwd):
         SERVER.bind(ADDR)
 
 
-
 def logIn_int():
     # window
     tkWindow = Tk()
-    tkWindow.geometry('400x150')
-    tkWindow.title('Login')
-    # username label and text entry box
-    usernameLabel = Label(tkWindow, text="User Name").grid(row=0, column=0)
-    username = StringVar()
-    usernameEntry = Entry(tkWindow, textvariable=username).grid(row=0, column=1)
-    # password label and password entry box
-    passwordLabel = Label(tkWindow, text="Password").grid(row=1, column=0)
-    password = StringVar()
-    passwordEntry = Entry(tkWindow, textvariable=password, show='*').grid(row=1, column=1)
-    # login button
-    loginButton = Button(tkWindow, text="Login", command=(lambda: logInRequest(username.get(), password.get()))).grid(
-        row=4, column=0)
-    registerButtom = Button(tkWindow, text="register", command=(lambda: regInt())).grid(
-        row=4, column=1)
-    tkWindow.mainloop()
+    tkWindow.geometry()
+    tkWindow.title('Welcome')
+    
+    # Username label and text entry box
+    usernameLabel = Label(tkWindow, text="Username:")
+    usernameLabel.grid(row = 0, column = 0, sticky = W, pady = 2)
 
+    username = StringVar()
+    usernameEntry = Entry(tkWindow, textvariable=username)  
+    usernameEntry.grid(row = 0, column = 1, sticky = W, pady = 2, columnspan = 2)
+    
+    # Password label and password entry box
+    passwordLabel = Label(tkWindow,text="Password:")
+    passwordLabel.grid(row = 1, column = 0, sticky = W, pady = 2)
+
+    password = StringVar()
+    passwordEntry = Entry(tkWindow, textvariable=password, show='*') 
+    passwordEntry.grid(row = 1, column = 1, sticky = W, pady = 2, columnspan = 2)
+    
+    # login button
+    loginButton = Button(tkWindow, text="Login", command=(lambda: logInRequest(username.get(), password.get())))
+    loginButton.grid(row = 3, column = 1, sticky = W, pady = 2, padx = 2)    
+    
+    registerButtom = Button(tkWindow, text="Register", command=(lambda: regInt()))
+    registerButtom.grid(row = 3, column = 2, sticky = W, pady = 2, padx = 2)
+    
+    tkWindow.mainloop()
 
 if __name__ == "__main__":
     genClientKeys()
