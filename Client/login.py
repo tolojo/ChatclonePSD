@@ -1,4 +1,4 @@
-import socket
+from socket import *
 from tkinter import *
 from functools import partial
 import requests
@@ -7,11 +7,9 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
-
-
 def login(uname, passwd):
-    response = requests.get(url="http://127.0.0.1:3000/retrieveServerPK")
-    hostname = socket.gethostname()
+    response = requests.get(url="http://10.101.220.196:3000/retrieveServerPK")
+    hostname = gethostname()
     with open('server_public_key.pem', 'wb') as f:
         f.write(response.content)
     f = open('server_public_key.pem', "r")
@@ -33,7 +31,7 @@ def login(uname, passwd):
     user_dict = {
         'uname': uname,
         'passwd': passwd,
-        'ip': socket.gethostbyname(hostname),
+        'ip': gethostbyname_ex(hostname)[2][1],
         }
     return user_dict
 

@@ -109,17 +109,14 @@ def userReg():
     else:
         return "Username já existe", 401
 
-
-
-
 @app.route('/users/pkRegister/<uname>', methods=['POST'])  # registar a PK do user no server
 def pkRegister(uname):
     file = request.files['file']
     savename ="clientPK/"+uname + "_" + file.filename
     file.save(savename)
     aux = {
-        UserPK_pair[uname].get('ip'),
-        savename,
+        'ip': UserPK_pair[uname].get('ip'),
+        'path': savename,
     }
     UserPK_pair[uname] = aux  # sub pk teste1 por futura PK
 
@@ -137,7 +134,10 @@ def userRetrieve(uname):
 
 @app.route('/users/ip/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):
-    return UserPK_pair[uname]
+    aux = UserPK_pair[uname]
+    print(aux['ip'])
+    print(UserPK_pair)
+    return aux['ip']
 
 
 
@@ -146,6 +146,7 @@ def usersRetrieve():
 
     userList = list(UserPK_pair)
     userDict = {user: user for user in userList}
+    print(UserPK_pair)
     return userDict
 
 
@@ -157,5 +158,4 @@ if __name__ == "__main__":
     except:
         print("File doesn't exist")
         genServerKeys()
-
-    app.run(debug=True, host="127.0.0.1", port=3000)
+    app.run(host="0.0.0.0", port = 3000)
