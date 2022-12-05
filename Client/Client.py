@@ -1,5 +1,5 @@
 import json
-import socket
+# import socket
 import tkinter
 from socket import *
 from threading import Thread
@@ -14,8 +14,9 @@ from Users_int import *
 from login import login
 from register import regInt
 
-serverUrl = 'http://127.0.0.1:3000'
-
+hostname = gethostname()
+host_ip = gethostbyname_ex(hostname)[2][1]
+serverUrl = f"http://{host_ip}:3000"
 
 def serverSocket():
     SERVER.listen(5)

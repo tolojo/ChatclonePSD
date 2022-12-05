@@ -1,11 +1,12 @@
-from socket import socket, AF_INET, SOCK_STREAM
+from socket import *
 from tkinter import *
 import tkinter
 from ast import *
 import requests
 
-serverUrl = 'http://127.0.0.1:3000'
-
+hostname = gethostname()
+host_ip = gethostbyname_ex(hostname)[2][1]
+serverUrl = f"http://{host_ip}:3000"
 def refreshUsers():
     r = requests.get(url=serverUrl+"/users")
     user = literal_eval(r.content.decode())
