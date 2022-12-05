@@ -1,3 +1,4 @@
+from socket import socket, AF_INET, SOCK_STREAM
 from tkinter import *
 import tkinter
 from ast import *
@@ -17,6 +18,9 @@ def refreshUsers():
 
 def connect(uname):
     r = requests.get(url=serverUrl+"/users/pkRegister/"+uname)
+
+    client_socket = socket(AF_INET, SOCK_STREAM)
+    client_socket.connect()
 
 
 def connectedUserInt():

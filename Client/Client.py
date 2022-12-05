@@ -1,9 +1,9 @@
 import json
+import socket
 import tkinter
-from socket import AF_INET, socket, SOCK_STREAM
+from socket import *
 from threading import Thread
 import shutil
-import socket
 from tkinter import *
 
 import requests
@@ -103,12 +103,12 @@ def logIn_int():
 clients = {}
 addresses = {}
 
-HOST = socket.gethostname()
+HOST = gethostname()
 PORT = 33000
 BUFSIZ = 1024
 
 
-SERVER = socket.socket()
+SERVER = socket()
 SERVER.bind((HOST,PORT))
 if __name__ == "__main__":
 

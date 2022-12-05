@@ -132,8 +132,14 @@ def getServerPK():
 
 
 @app.route('/users/pkRegister/<uname>', methods=['GET'])  # devolve a PK do user no server
+def userRetrieve(uname):
+    return send_file("/clientPK/"+uname+"_client_public_key.pem",as_attachment=True)
+
+@app.route('/users/ip/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):
-    return list(UserPK_pair[uname])
+    return UserPK_pair[uname]
+
+
 
 @app.route('/users', methods=['GET'])  # devolve a PK do user no server
 def usersRetrieve():
