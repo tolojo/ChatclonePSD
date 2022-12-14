@@ -20,31 +20,29 @@ serverUrl = f"http://{host_ip}:3000"
 
 
 client_address = 0
+cName = ""
 
+def setClient(uname):
+
+    global cName
+    cName = uname
+    print(cName)
 
 def accept_incoming_connections():
     """Sets up handling for incoming clients."""
     while True:
         client, client_address = SERVER.accept()
         print("%s:%s has connected." % client_address)
-        client.send(bytes("Greetings from the cave! Now type your name and press enter!", "utf8"))
         Thread(target=handle_client, args=(client,)).start()
 
 
 def handle_client(client):  # Takes client socket as argument.
-    """Handles a single client connection."""
-
-    name = client.recv(BUFSIZ).decode("utf8")
-    users = name + "\n"
-    welcome = 'Welcome %s! If you ever want to quit, type {quit} to exit.\n' % name
-    client.send(bytes(welcome, "utf8"))
-    msg = "%s has joined the chat!" % name
-    SERVER.sendto(msg,client_address)
 
     while True:
         msg = client.recv(BUFSIZ)
+        uname = cName
         if msg != bytes("{quit}", "utf8"):
-            print("abc")
+            putMessage(uname+" : "+msg.decode('utf8'))
         else:
             client.send(bytes("{quit}", "utf8"))
             client.close()

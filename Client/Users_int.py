@@ -5,9 +5,15 @@ import tkinter
 from ast import *
 import requests
 
+from chat_Int import *
+from Client import *
+
 hostname = gethostname()
 host_ip = gethostbyname_ex(hostname)[2][1]
 serverUrl = f"http://{host_ip}:3000"
+
+
+
 def refreshUsers():
     r = requests.get(url=serverUrl+"/users")
     user = literal_eval(r.content.decode())
@@ -18,12 +24,19 @@ def refreshUsers():
     msg_list.insert(tkinter.END,"-----------------------")
 
 
-def connect(uname):
+def loadPort(uname):
+    file = requests.get(url=serverUrl+'/users/pkRegister/'+uname)
+
+    with open("clientConnectionskeys/"+uname+"_clientkey") as f:
+        f.write(file.content)
+
     r = requests.get(url=serverUrl+"/users/ip/"+uname)
     port = json.loads(r.content.decode())
     print(port["port"])
-    client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect(('127.0.0.1' ,port["port"]))
+    connect(port["port"])
+    setClient(uname)
+    top.destroy()
+    chat_int(uname)
 
 
 def connectedUserInt():
@@ -37,7 +50,7 @@ def connectedUserInt():
     def focusOut(entry, placeholder):
         if entry.get() == "":
             entry.insert(0, placeholder)
-
+    global top
     top = tkinter.Tk()
     top.title("Select User")
 
@@ -63,7 +76,7 @@ def connectedUserInt():
     refreshUserButton = tkinter.Button(top, text="refresh", command=(lambda: refreshUsers()))
     refreshUserButton.pack()
 
-    connectButton = tkinter.Button(top, text="connect", command=(lambda: connect(user.get())))
+    connectButton = tkinter.Button(top, text="connect", command=(lambda: loadPort(user.get())))
     connectButton.pack()
 
     top.mainloop()

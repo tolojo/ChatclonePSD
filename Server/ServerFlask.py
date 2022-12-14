@@ -1,3 +1,5 @@
+from os import getcwd, path
+
 from flask import Flask, request, jsonify, send_file
 from pymongo import MongoClient
 import json
@@ -131,7 +133,8 @@ def getServerPK():
 
 @app.route('/users/pkRegister/<uname>', methods=['GET'])  # devolve a PK do user no server
 def userRetrieve(uname):
-    return send_file("/clientPK/"+uname+"_client_public_key.pem",as_attachment=True)
+    currdir = getcwd()
+    return send_file(path.join(currdir,"clientPK/"+uname+"_client_public_key.pem"),as_attachment=True)
 
 @app.route('/users/ip/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):

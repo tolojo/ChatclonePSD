@@ -25,7 +25,7 @@ def genClientKeys():
         encryption_algorithm=serialization.NoEncryption()
     )
 
-    with open('client_private_key.pem', 'wb') as f:
+    with open('Client/client_private_key.pem', 'wb') as f:
         f.write(pem)
 
     pem = public_key.public_bytes(
@@ -33,7 +33,7 @@ def genClientKeys():
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
-    with open('client_public_key.pem', 'wb') as f:
+    with open('Client/client_public_key.pem', 'wb') as f:
         f.write(pem)
 
 def sendClientPK():
@@ -44,7 +44,7 @@ def sendClientPK():
         'ip': socket.gethostbyname(hostname),
     }
 
-    files = {'file': open('client_public_key.pem', 'rb')}
+    files = {'file': open('Client/client_public_key.pem', 'rb')}
 
     r = requests.post('http://127.0.0.1:3000/users/pkRegister',data={'file': files},json=user_dict),
     print(r.status_code)
