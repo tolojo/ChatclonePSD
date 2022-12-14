@@ -1,29 +1,4 @@
-import json
-from socket import *
-from tkinter import *
 import tkinter
-from ast import *
-import requests
-
-hostname = gethostname()
-host_ip = gethostbyname_ex(hostname)[2][1]
-serverUrl = f"http://{host_ip}:3000"
-def refreshUsers():
-    r = requests.get(url=serverUrl+"/users")
-    user = literal_eval(r.content.decode())
-    print(type(user))
-    for aux in user:
-        print(aux)
-        msg_list.insert(tkinter.END, aux)
-    msg_list.insert(tkinter.END,"-----------------------")
-
-
-def connect(uname):
-    r = requests.get(url=serverUrl+"/users/ip/"+uname)
-    port = json.loads(r.content.decode())
-    print(port["port"])
-    client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect(('127.0.0.1' ,port["port"]))
 
 
 def connectedUserInt():
@@ -55,13 +30,11 @@ def connectedUserInt():
     messages_frame.pack()
 
     placeholder = "Type your messages here."
-    user = StringVar()
+    user = tkinter.StringVar()
     entry_field = tkinter.Entry(top, textvariable=user)
     entry_field.bind("<FocusIn>", lambda e: focusIn(entry_field, placeholder))
     entry_field.bind("<FocusOut>", lambda e: focusOut(entry_field, placeholder))
     entry_field.pack()
-    refreshUserButton = tkinter.Button(top, text="refresh", command=(lambda: refreshUsers()))
-    refreshUserButton.pack()
 
     connectButton = tkinter.Button(top, text="connect", command=(lambda: connect(user.get())))
     connectButton.pack()

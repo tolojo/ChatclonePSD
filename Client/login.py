@@ -7,10 +7,9 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
-def login(uname, passwd):
-    hostname = gethostname()
-    host_ip = gethostbyname_ex(hostname)[2][1]
-    response = requests.get(url=f"http://{host_ip}:3000/retrieveServerPK")
+def login(uname, passwd, port):
+    serverIp='127.0.0.1'
+    response = requests.get(url=f"http://{serverIp}:3000/retrieveServerPK")
     hostname = gethostname()
     with open('server_public_key.pem', 'wb') as f:
         f.write(response.content)
@@ -33,7 +32,7 @@ def login(uname, passwd):
     user_dict = {
         'uname': uname,
         'passwd': passwd,
-        'ip': host_ip,
+        'port': port,
         }
     return user_dict
 

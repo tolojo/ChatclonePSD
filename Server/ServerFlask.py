@@ -52,6 +52,7 @@ def userAuth():
     data = json.dumps(request.get_json())
     data = json.loads(data)
 
+    print(data)
     login = users.find_one({"uname": data["uname"]})
 
     passwd = login["passwd"]
@@ -78,7 +79,7 @@ def userAuth():
 
 
     if aux == passwd:
-        UserPK_pair[data["uname"]] = {'ip': data["ip"]}
+        UserPK_pair[data["uname"]] = {'port': data["port"]}
         return "User encontrado", 200
 
     else:
@@ -115,7 +116,7 @@ def pkRegister(uname):
     savename ="clientPK/"+uname + "_" + file.filename
     file.save(savename)
     aux = {
-        'ip': UserPK_pair[uname].get('ip'),
+        'port': UserPK_pair[uname].get('port'),
         'path': savename,
     }
     UserPK_pair[uname] = aux  # sub pk teste1 por futura PK
@@ -135,9 +136,9 @@ def userRetrieve(uname):
 @app.route('/users/ip/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):
     aux = UserPK_pair[uname]
-    print(aux['ip'])
+    print(aux['port'])
     print(UserPK_pair)
-    return aux['ip']
+    return {'port': aux['port']}
 
 
 
