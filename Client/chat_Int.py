@@ -20,6 +20,7 @@ def sendMessage(msg,uname):  # event is passed by binders.
     msg = fernet.encrypt(msg.encode())
     print(msg)
     client_socket.send(msg)
+    msg = fernet.decrypt(msg)
     msg_list.insert(tkinter.END, uname.encode('utf8') + b' : ' + msg)
     if msg == "{quit}":
        client_socket.close()
@@ -42,18 +43,18 @@ def receive():
 
 def connect(port, uname):
     global client_socket
-    if(uname == 'tomas'):
-        uname = 'joao'
-    if(uname == 'joao'):
-        uname = 'tomas'
+    name = uname
+    if(name == "tomas"):
+        name = "joao"
+    else :
+        if(name == "joao"):
+            name = "tomas"
+    print("name::" + name)
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect(('127.0.0.1', port))
-    client_socket.send(bytes(uname,'utf8'))
+    client_socket.send(bytes(name,'utf8'))
     time.sleep(1)
-    if (uname == "tomas"):
-        uname = "joao"
-    if (uname == "joao"):
-        uname = "tomas"
+
     try:
         print("uname::"+ uname)
         f = open("symmetricKeys/"+uname+".key", "r")

@@ -1,4 +1,5 @@
 import json
+import time
 # import socket
 import tkinter
 from socket import *
@@ -41,20 +42,18 @@ def accept_incoming_connections():
 
 def handle_client(client):  # Takes client socket as argument.
     uname = client.recv(4096).decode('utf8')
-    if (uname == "tomas"):
-        uname = 'joao'
-    if (uname == "joao"):
-        uname = 'tomas'
-    print("uname: "+uname)
 
     try:
         f = open("symmetricKeys/"+uname+".key", "r")
     except:
         print("File doesn't exist")
-        msg = client.recv(4096)
+        msg = client.recv(4096).decode()
         print(msg)
-        file = open('symmetricKeys/' + uname + '.key', 'wb')  # wb = write bytes
+        print(uname)
+        time.sleep(2)
+        file = open('symmetricKeys/' + uname + '.key', 'w')  # wb = write bytes
         file.write(msg)
+        file.close()
         print("key file created")
 
     while True:
