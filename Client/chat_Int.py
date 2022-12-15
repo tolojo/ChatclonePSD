@@ -1,5 +1,10 @@
+import time
 import tkinter
 from socket import socket, AF_INET, SOCK_STREAM
+
+from cryptography.fernet import Fernet
+
+from Client import getUname
 
 
 def putMessage(msg):
@@ -7,7 +12,12 @@ def putMessage(msg):
 
 def sendMessage(msg,uname):  # event is passed by binders.
         # Handles sending of messages.
-    msg = msg.encode('utf8')
+
+    file = open('symmetricKeys/' + uname + '.key', 'rb')  # rb = read bytes
+    key = file.read()
+    file.close()
+    fernet = Fernet(key)
+    msg = fernet.encrypt(msg.encode())
     print(msg)
     client_socket.send(msg)
     msg_list.insert(tkinter.END, uname.encode('utf8') + b' : ' + msg)
@@ -19,18 +29,45 @@ def receive():
     #Handles receiving of messages.
     while True:
         try:
-            msg = client_socket.recv(2048).decode("utf8")
+            msg = client_socket.recv(2048)
+            file = open('symmetricKeys/' + getUname() + '.key', 'rb')  # rb = read bytes
+            key = file.read()
+            file.close()
+            fernet = Fernet(key)
+            msg = fernet.decrypt(msg)
             msg_list.insert(tkinter.END, msg)
         except OSError:  # Possibly client has left the chat.
             break
 
-def connect(port):
+
+def connect(port, uname):
     global client_socket
+    if(uname == 'tomas'):
+        uname = 'joao'
+    if(uname == 'joao'):
+        uname = 'tomas'
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect(('127.0.0.1', port))
+    client_socket.send(bytes(uname,'utf8'))
+    time.sleep(1)
+    if (uname == "tomas"):
+        uname = "joao"
+    if (uname == "joao"):
+        uname = "tomas"
+    try:
+        print("uname::"+ uname)
+        f = open("symmetricKeys/"+uname+".key", "r")
+    except:
+        print("File doesn't exist")
+        key = Fernet.generate_key()
+        file = open('symmetricKeys/'+uname+'.key', 'wb')  # wb = write bytes
+        file.write(key)
+        print("key Generated")
+        client_socket.send(key)
 
 def chat_int(uname):
-
+    global sUName
+    sUName = uname
     # call function when we click in the box
     def focusIn(entry, placeholder):
         if entry.get() == placeholder:

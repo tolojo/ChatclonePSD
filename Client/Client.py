@@ -7,6 +7,7 @@ import shutil
 from tkinter import *
 
 import requests
+from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
@@ -14,13 +15,15 @@ from Users_int import *
 from login import login
 from register import regInt
 
-hostname = gethostname()
-host_ip = gethostbyname_ex(hostname)[2][1]
-serverUrl = f"http://{host_ip}:3000"
+serverUrl = f"http://192.168.1.75:3000"
 
 
 client_address = 0
 cName = ""
+username = ""
+def getUname():
+    return username
+
 
 def setClient(uname):
 
@@ -37,10 +40,30 @@ def accept_incoming_connections():
 
 
 def handle_client(client):  # Takes client socket as argument.
+    uname = client.recv(4096).decode('utf8')
+    if (uname == "tomas"):
+        uname = 'joao'
+    if (uname == "joao"):
+        uname = 'tomas'
+    print("uname: "+uname)
+
+    try:
+        f = open("symmetricKeys/"+uname+".key", "r")
+    except:
+        print("File doesn't exist")
+        msg = client.recv(4096)
+        print(msg)
+        file = open('symmetricKeys/' + uname + '.key', 'wb')  # wb = write bytes
+        file.write(msg)
+        print("key file created")
 
     while True:
         msg = client.recv(BUFSIZ)
+        f = open("symmetricKeys/" + uname + ".key", "r")
+        fernet = Fernet(f.read())
+        msg = fernet.decrypt(msg)
         uname = cName
+
         if msg != bytes("{quit}", "utf8"):
             putMessage(uname+" : "+msg.decode('utf8'))
         else:
@@ -90,6 +113,7 @@ def genClientKeys():
 
 
 def sendClientPK():
+
     files = {'file': open('client_public_key.pem', 'rb')}
     r = requests.post(serverUrl + "/users/pkRegister/" + username, files=files)
 

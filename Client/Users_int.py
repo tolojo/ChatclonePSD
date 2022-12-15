@@ -9,9 +9,7 @@ import requests
 from chat_Int import *
 from Client import *
 
-hostname = gethostname()
-host_ip = gethostbyname_ex(hostname)[2][1]
-serverUrl = f"http://{host_ip}:3000"
+serverUrl = "http://192.168.1.75:3000"
 
 
 def refreshUsers():
@@ -39,13 +37,13 @@ def refreshUsers():
 def loadPort(uname):
     file = requests.get(url=serverUrl+'/users/pkRegister/'+uname)
 
-    with open("clientConnectionskeys/"+uname+"_clientkey") as f:
+    with open("clientConnectionsKeys/"+uname+"_clientkey.pem",'wb') as f:
         f.write(file.content)
 
     r = requests.get(url=serverUrl+"/users/ip/"+uname)
     port = json.loads(r.content.decode())
     print(port["port"])
-    connect(port["port"])
+    connect(port["port"], uname)
     setClient(uname)
     top.destroy()
     chat_int(uname)
