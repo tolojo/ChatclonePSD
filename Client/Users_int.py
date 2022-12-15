@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from socket import *
 from tkinter import *
@@ -13,15 +14,26 @@ host_ip = gethostbyname_ex(hostname)[2][1]
 serverUrl = f"http://{host_ip}:3000"
 
 
-
 def refreshUsers():
     r = requests.get(url=serverUrl+"/users")
     user = literal_eval(r.content.decode())
-    print(type(user))
+
+    # clear the text field before inserting new text
+    msg_list.delete(0, tkinter.END)
+
+    # insert current time in msg_list to know when refresh button was clicked
+    string_before = f"Current Time: {datetime.now().strftime('%H:%M:%S')}"
+    msg_list.insert(tkinter.END, string_before.center(len(string_before) + 12, "-"))
+    msg_list.insert(tkinter.END, "\n")
+
+    # print users online
     for aux in user:
-        print(aux)
         msg_list.insert(tkinter.END, aux)
-    msg_list.insert(tkinter.END,"-----------------------")
+
+    msg_list.insert(tkinter.END, "\n")
+    string_after = "End of users list"
+    msg_list.insert(tkinter.END, string_after.center(len(string_before) + 12, "-"))
+    msg_list.insert(tkinter.END, "-----------------------")
 
 
 def loadPort(uname):
