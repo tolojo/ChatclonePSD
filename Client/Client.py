@@ -6,7 +6,7 @@ from socket import *
 from threading import Thread
 import shutil
 from tkinter import *
-
+from os import getcwd, path
 import requests
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import serialization
@@ -16,7 +16,7 @@ from Users_int import *
 from login import login
 from register import regInt
 
-serverUrl = f"http://192.168.1.75:3000"
+serverUrl = f"http://192.168.1.112:3000"
 
 
 client_address = 0
@@ -41,24 +41,41 @@ def accept_incoming_connections():
 
 
 def handle_client(client):  # Takes client socket as argument.
+    name = ""
     uname = client.recv(4096).decode('utf8')
-
+    if(uname == "tomas"):
+        name = "joao"
+    else:
+        if(uname == "joao"):
+            name = "tomas"
     try:
-        f = open("symmetricKeys/"+uname+".key", "r")
+        f = open('symmetricKeys/'+uname+'.key', 'r')
     except:
         print("File doesn't exist")
-        msg = client.recv(4096).decode()
+        msg = client.recv(8172)
         print(msg)
-        print(uname)
+        print(name)
+        path = getcwd()
         time.sleep(2)
-        file = open('symmetricKeys/' + uname + '.key', 'w')  # wb = write bytes
-        file.write(msg)
+        with open(path.join(path,'asymmetricKeys/' + name + '_client_private_key.pem'), 'rb') as f:
+            client_private_key = serialization.load_pem_private_key(
+                f.read(), 
+                password=None,
+            )
+        key = client_private_key.decrypt(
+            msg,
+            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), 
+            algorithm=hashes.SHA256(), 
+            label=None)
+        )
+        file = open(path.join(path,'symmetricKeys/' + uname + '.key'), 'w')  # wb = write bytes
+        file.write(key)
         file.close()
         print("key file created")
 
     while True:
         msg = client.recv(BUFSIZ)
-        f = open("symmetricKeys/" + uname + ".key", "r")
+        f = open(path.join(path,'symmetricKeys/' + uname + '.key'), 'r')
         fernet = Fernet(f.read())
         msg = fernet.decrypt(msg)
         uname = cName
@@ -99,7 +116,7 @@ def genClientKeys():
         encryption_algorithm=serialization.NoEncryption()
     )
 
-    with open('client_private_key.pem', 'wb') as f:
+    with open('asymmetricKeys/' + getUname() + '_client_private_key.pem', 'wb') as f:
         f.write(pem)
 
     pem = public_key.public_bytes(
@@ -107,13 +124,13 @@ def genClientKeys():
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
-    with open('client_public_key.pem', 'wb') as f:
+    with open('asymmetricKeys/' + getUname() + '_client_public_key.pem', 'wb') as f:
         f.write(pem)
 
 
 def sendClientPK():
 
-    files = {'file': open('client_public_key.pem', 'rb')}
+    files = {'file': open('asymmetricKeys/' + getUname() + '_client_public_key.pem', 'rb')}
     r = requests.post(serverUrl + "/users/pkRegister/" + username, files=files)
 
 
@@ -180,7 +197,7 @@ def logIn_int():
 
 if __name__ == "__main__":
 
-
-    genClientKeys()
     logIn_int()
+    genClientKeys()
+    
 

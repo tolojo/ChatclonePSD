@@ -134,7 +134,7 @@ def getServerPK():
 @app.route('/users/pkRegister/<uname>', methods=['GET'])  # devolve a PK do user no server
 def userRetrieve(uname):
     currdir = getcwd()
-    return send_file(path.join(currdir,"clientPK/"+uname+"_client_public_key.pem"),as_attachment=True)
+    return send_file(path.join(currdir,"clientPK/"+uname+'_'+uname+"_client_public_key.pem"),as_attachment=True)
 
 @app.route('/users/ip/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):

@@ -1,9 +1,11 @@
 import time
 import tkinter
 from socket import socket, AF_INET, SOCK_STREAM
-
+from os import getcwd, path
 from cryptography.fernet import Fernet
-
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from Client import getUname
 
 
@@ -61,10 +63,20 @@ def connect(port, uname):
     except:
         print("File doesn't exist")
         key = Fernet.generate_key()
+        with open('asymmetricKeys/' + uname + '_client_private_key.pem', 'rb') as f:
+            client_public_key = serialization.load_pem_public_key(
+                f.read(),
+                backend = default_backend()
+            )
+        encrypted_key = client_public_key.encrypt(
+            key,
+            padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(), label=None)
+        )
         file = open('symmetricKeys/'+uname+'.key', 'wb')  # wb = write bytes
         file.write(key)
         print("key Generated")
-        client_socket.send(key)
+        client_socket.send(encrypted_key)
 
 def chat_int(uname):
     global sUName
