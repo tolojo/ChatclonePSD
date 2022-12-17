@@ -16,7 +16,7 @@ from Users_int import *
 from login import login
 from register import regInt
 import chat_Int
-serverUrl = f"http://192.168.1.237:3000"
+serverUrl = f"http://192.168.1.75:3000"
 
 
 client_address = 0
@@ -43,13 +43,10 @@ def accept_incoming_connections():
 def handle_client(client):  # Takes client socket as argument.
     name = ""
     uname = client.recv(4096).decode('utf8')
-    if(uname == "tomas"):
-        name = "joao"
-    else:
-        if(uname == "joao"):
-            name = "tomas"
+
     try:
         f = open('symmetricKeys/'+uname+'.key', 'r')
+
     except:
         print("File doesn't exist")
         msg = client.recv(8172)
@@ -57,7 +54,7 @@ def handle_client(client):  # Takes client socket as argument.
         print(name)
         path = getcwd()
         time.sleep(2)
-        with open('asymmetricKeys/' + name + '_client_private_key.pem', 'rb') as f:
+        with open('asymmetricKeys/' + username + '_client_private_key.pem', 'rb') as f:
             client_private_key = serialization.load_pem_private_key(
                 f.read(), 
                 password=None,
@@ -158,16 +155,16 @@ def sendClientPK(uname):
 def logInRequest(logged_user, passwd, port, tkWindow):
     r = requests.post(url=serverUrl+"/logIn", json=login(logged_user, passwd, port))
     if (r.status_code == 200):
-        genClientKeys(uname)
+        genClientKeys(logged_user)
         time.sleep(1)
         global Uport
         Uport = port
         tkWindow.destroy()
         global username
-        username = uname
-        sendClientPK(uname)
-        serverSocket()
-        connectedUserInt()
+        username = logged_user
+        sendClientPK(logged_user)
+        serverSocket(port)
+        connectedUserInt(logged_user)
 
 
 def logIn_int():

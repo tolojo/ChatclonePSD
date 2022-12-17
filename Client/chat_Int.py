@@ -95,16 +95,16 @@ def connect(port, conn_user, logged_user):
     print(f"Connected to user: {conn_user}; on port: {port}\n")
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect(('127.0.0.1', port))
-    client_socket.send(bytes(conn_user,'utf8'))
+    client_socket.send(bytes(logged_user,'utf8'))
     time.sleep(1)
 
     try:
-        print("uname::" + uname)
-        f = open("symmetricKeys/"+uname+".key", "r")
+        print("uname::" + conn_user)
+        f = open("symmetricKeys/"+conn_user+".key", "r")
     except:
         print("File doesn't exist")
         key = Fernet.generate_key()
-        with open('asymmetricKeys/' + uname + '_client_public_key.pem', 'rb') as f:
+        with open('asymmetricKeys/' + conn_user + '_client_public_key.pem', 'rb') as f:
             client_public_key = serialization.load_pem_public_key(
                 f.read(),
                 backend = default_backend()
@@ -114,7 +114,7 @@ def connect(port, conn_user, logged_user):
             padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(), label=None)
         )
-        file = open('symmetricKeys/'+uname+'.key', 'wb')  # wb = write bytes
+        file = open('symmetricKeys/'+conn_user+'.key', 'wb')  # wb = write bytes
         file.write(key)
         print("key Generated")
         client_socket.send(encrypted_key)
