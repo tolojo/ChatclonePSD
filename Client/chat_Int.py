@@ -25,7 +25,7 @@ def sendMessage(msg, conn_user, logged_user):  # Handles sending of messages.
     # printing message to logged user's screen
     # msg_list.insert(tkinter.END, f"{logged_user.capitalize()}: {msg}")
 
-    msg_list.insert(tkinter.END, msg)
+    msg_list.insert(tkinter.END,logged_user+": "+ msg)
 
 
     # encrypting message using connected user's symmetric key
