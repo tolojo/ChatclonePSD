@@ -3,6 +3,7 @@ from os import getcwd, path
 from flask import Flask, request, jsonify, send_file
 from pymongo import MongoClient
 import json
+import os
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.primitives import serialization, hashes
@@ -115,7 +116,8 @@ def userReg():
 @app.route('/users/pkRegister/<uname>', methods=['POST'])  # registar a PK do user no server
 def pkRegister(uname):
     file = request.files['file']
-    savename ="clientPK/"+uname + "_" + file.filename
+
+    savename =f"{os.getcwd()}\\clientPK\\{uname}_{file.filename}"
     file.save(savename)
     aux = {
         'port': UserPK_pair[uname].get('port'),
@@ -139,8 +141,8 @@ def userRetrieve(uname):
 @app.route('/users/ip/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):
     aux = UserPK_pair[uname]
-    print(aux['port'])
-    print(UserPK_pair)
+    #print(aux['port'])
+    #print(UserPK_pair)
     return {'port': aux['port']}
 
 
@@ -149,8 +151,10 @@ def pkRetrieve(uname):
 def usersRetrieve():
 
     userList = list(UserPK_pair)
+    #print(userList)
     userDict = {user: user for user in userList}
-    print(UserPK_pair)
+    #print(userDict)
+    #print(UserPK_pair)
     return userDict
 
 
@@ -162,4 +166,51 @@ if __name__ == "__main__":
     except:
         print("File doesn't exist")
         genServerKeys()
-    app.run(host="0.0.0.0", port = 3000)
+    app.run(host="0.0.0.0", port=3000)
+
+
+'''
+@app.route('/createGroup', methods=['POST'])
+def createGroup():
+    data = json.dumps(request.get_json())
+    data = json.loads(data)
+    group_name = data["group_name"]
+    members = data["members"]
+    creator = data["creator"]
+
+    # check if group already exists
+    if groups.find_one({"group_name": group_name}):
+        return "Group already exists", 401
+
+    # create group
+    group = {"group_name": group_name, "members": members, "creator": creator}
+    group_id = groups.insert_one(group).inserted_id
+
+    # create messages collection for the group
+    messages.create_collection(str(group_id))
+
+    return "Group created successfully", 200
+
+@app.route('/addMemberToGroup', methods=['POST'])
+def addMemberToGroup():
+    data = json.dumps(request.get_json())
+    data = json.loads(data)
+    group_name = data["group_name"]
+    member = data["member"]
+
+    # check if group exists
+    group = groups.find_one({"group_name": group_name})
+    if not group:
+        return "Group not found", 404
+
+    # add member to group
+    group_id = group["_id"]
+    groups.update_one({"_id": group_id}, {"$push": {"members": member}})
+
+    return "Member added successfully", 200
+
+@app.route('/sendMessageToGroup', methods=['POST'])
+def sendMessageToGroup():
+    data
+
+'''

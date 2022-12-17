@@ -15,8 +15,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from Users_int import *
 from login import login
 from register import regInt
-
-serverUrl = f"http://192.168.1.75:3000"
+import chat_Int
+serverUrl = f"http://192.168.1.237:3000"
 
 
 client_address = 0
@@ -26,17 +26,17 @@ def getUname():
     return username
 
 
-def setClient(uname):
+def setClient(conn_user):
 
     global cName
-    cName = uname
-    print(cName)
+    cName = conn_user
+    # print(f"Connected to user: {cName}")
 
 def accept_incoming_connections():
     """Sets up handling for incoming clients."""
     while True:
         client, client_address = SERVER.accept()
-        print("%s:%s has connected." % client_address)
+        print("%s:%s has connected.\n" % client_address)
         Thread(target=handle_client, args=(client,)).start()
 
 
@@ -77,20 +77,39 @@ def handle_client(client):  # Takes client socket as argument.
 
     while True:
         msg = client.recv(BUFSIZ)
-        f = open('symmetricKeys/' + uname + '.key', 'r')
+
+        try:
+            with open("chatLogs/" + chat_Int.connected_to + ".txt", "ab") as f:
+                f.write(msg)
+            with open("chatLogs/" + chat_Int.connected_to + ".txt", "a") as f:
+                f.write('\n')
+        except:
+            print("File doesn't exist")
+            with open("chatLogs/" + chat_Int.connected_to + ".txt", "wb") as f:
+                print("File Created")
+                f.write(msg)
+            with open("chatLogs/" + chat_Int.connected_to + ".txt", "w") as f:
+                f.write('\n')
+
+        f = open("symmetricKeys/" + uname + ".key", "r")
         fernet = Fernet(f.read())
         msg = fernet.decrypt(msg)
-        uname = cName
+        # conn_user = cName
+        # print(type(conn_user))
+        # print(conn_user)
 
         if msg != bytes("{quit}", "utf8"):
-            putMessage(uname+" : "+msg.decode('utf8'))
+
+            # putMessage(uname+" : "+msg.decode('utf8'))
+            putMessage(f"{(chat_Int.connected_to).capitalize()}: {msg.decode()}")
+
         else:
             client.send(bytes("{quit}", "utf8"))
             client.close()
             break
 
 
-def serverSocket():
+def serverSocket(Uport):
     HOST = ''
     PORT = Uport
     global BUFSIZ
@@ -136,8 +155,8 @@ def sendClientPK(uname):
     r = requests.post(serverUrl + "/users/pkRegister/" + username, files=files)
 
 
-def logInRequest(uname, passwd,port, tkWindow):
-    r = requests.post(url=serverUrl+"/logIn", json=login(uname, passwd, port))
+def logInRequest(logged_user, passwd, port, tkWindow):
+    r = requests.post(url=serverUrl+"/logIn", json=login(logged_user, passwd, port))
     if (r.status_code == 200):
         genClientKeys(uname)
         time.sleep(1)
@@ -149,9 +168,6 @@ def logInRequest(uname, passwd,port, tkWindow):
         sendClientPK(uname)
         serverSocket()
         connectedUserInt()
-
-
-
 
 
 def logIn_int():
@@ -191,12 +207,9 @@ def logIn_int():
     loginButton.grid(row = 3, column = 1, sticky = W, pady = 2, padx = 2)    
     
     registerButtom = Button(tkWindow, text="Register", command=(lambda: regInt()))
-    registerButtom.grid(row = 3, column = 2, sticky = W, pady = 2, padx = 2)
+    registerButtom.grid(row=3, column=2, sticky=W, pady=2, padx=2)
     
     tkWindow.mainloop()
-
-
-
 
 
 if __name__ == "__main__":
