@@ -8,7 +8,7 @@ from cryptography.hazmat.primitives import serialization, hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
 def login(uname, passwd, port):
-    serverIp='192.168.1.112'
+    serverIp='192.168.1.75'
     response = requests.get(url=f"http://{serverIp}:3000/retrieveServerPK")
     hostname = gethostname()
     with open('server_public_key.pem', 'wb') as f:

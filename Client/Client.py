@@ -16,7 +16,7 @@ from Users_int import *
 from login import login
 from register import regInt
 
-serverUrl = f"http://192.168.1.112:3000"
+serverUrl = f"http://192.168.1.75:3000"
 
 
 client_address = 0
@@ -57,7 +57,7 @@ def handle_client(client):  # Takes client socket as argument.
         print(name)
         path = getcwd()
         time.sleep(2)
-        with open(path.join(path,'asymmetricKeys/' + name + '_client_private_key.pem'), 'rb') as f:
+        with open('asymmetricKeys/' + name + '_client_private_key.pem', 'rb') as f:
             client_private_key = serialization.load_pem_private_key(
                 f.read(), 
                 password=None,
@@ -68,14 +68,16 @@ def handle_client(client):  # Takes client socket as argument.
             algorithm=hashes.SHA256(), 
             label=None)
         )
-        file = open(path.join(path,'symmetricKeys/' + uname + '.key'), 'w')  # wb = write bytes
+        print(key)
+        time.sleep(1)
+        file = open('symmetricKeys/' + uname + '.key', 'wb')  # wb = write bytes
         file.write(key)
         file.close()
         print("key file created")
 
     while True:
         msg = client.recv(BUFSIZ)
-        f = open(path.join(path,'symmetricKeys/' + uname + '.key'), 'r')
+        f = open('symmetricKeys/' + uname + '.key', 'r')
         fernet = Fernet(f.read())
         msg = fernet.decrypt(msg)
         uname = cName
@@ -103,7 +105,7 @@ def serverSocket():
 
     print("Server socket a correr")
 
-def genClientKeys():
+def genClientKeys(uname):
     private_key = rsa.generate_private_key(
         public_exponent=65537,
         key_size=2048,
@@ -116,7 +118,7 @@ def genClientKeys():
         encryption_algorithm=serialization.NoEncryption()
     )
 
-    with open('asymmetricKeys/' + getUname() + '_client_private_key.pem', 'wb') as f:
+    with open('asymmetricKeys/' + uname + '_client_private_key.pem', 'wb') as f:
         f.write(pem)
 
     pem = public_key.public_bytes(
@@ -124,25 +126,27 @@ def genClientKeys():
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
-    with open('asymmetricKeys/' + getUname() + '_client_public_key.pem', 'wb') as f:
+    with open('asymmetricKeys/' + uname + '_client_public_key.pem', 'wb') as f:
         f.write(pem)
 
 
-def sendClientPK():
+def sendClientPK(uname):
 
-    files = {'file': open('asymmetricKeys/' + getUname() + '_client_public_key.pem', 'rb')}
+    files = {'file': open('asymmetricKeys/' + uname + '_client_public_key.pem', 'rb')}
     r = requests.post(serverUrl + "/users/pkRegister/" + username, files=files)
 
 
 def logInRequest(uname, passwd,port, tkWindow):
     r = requests.post(url=serverUrl+"/logIn", json=login(uname, passwd, port))
     if (r.status_code == 200):
+        genClientKeys(uname)
+        time.sleep(1)
         global Uport
         Uport = port
         tkWindow.destroy()
         global username
         username = uname
-        sendClientPK()
+        sendClientPK(uname)
         serverSocket()
         connectedUserInt()
 
@@ -196,8 +200,6 @@ def logIn_int():
 
 
 if __name__ == "__main__":
-
     logIn_int()
-    genClientKeys()
     
 

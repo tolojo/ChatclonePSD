@@ -58,12 +58,12 @@ def connect(port, uname):
     time.sleep(1)
 
     try:
-        print("uname::"+ uname)
+        print("uname::" + uname)
         f = open("symmetricKeys/"+uname+".key", "r")
     except:
         print("File doesn't exist")
         key = Fernet.generate_key()
-        with open('asymmetricKeys/' + uname + '_client_private_key.pem', 'rb') as f:
+        with open('asymmetricKeys/' + uname + '_client_public_key.pem', 'rb') as f:
             client_public_key = serialization.load_pem_public_key(
                 f.read(),
                 backend = default_backend()
