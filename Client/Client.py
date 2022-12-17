@@ -15,8 +15,8 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from Users_int import *
 from login import login
 from register import regInt
-
-serverUrl = f"http://192.168.1.75:3000"
+import chat_Int
+serverUrl = f"http://192.168.1.237:3000"
 
 
 client_address = 0
@@ -26,17 +26,17 @@ def getUname():
     return username
 
 
-def setClient(uname):
+def setClient(conn_user):
 
     global cName
-    cName = uname
-    print(cName)
+    cName = conn_user
+    # print(f"Connected to user: {cName}")
 
 def accept_incoming_connections():
     """Sets up handling for incoming clients."""
     while True:
         client, client_address = SERVER.accept()
-        print("%s:%s has connected." % client_address)
+        print("%s:%s has connected.\n" % client_address)
         Thread(target=handle_client, args=(client,)).start()
 
 
@@ -48,8 +48,8 @@ def handle_client(client):  # Takes client socket as argument.
     except:
         print("File doesn't exist")
         msg = client.recv(4096).decode()
-        print(msg)
-        print(uname)
+        # print(msg)
+        # print(uname)
         time.sleep(2)
         file = open('symmetricKeys/' + uname + '.key', 'w')  # wb = write bytes
         file.write(msg)
@@ -58,20 +58,39 @@ def handle_client(client):  # Takes client socket as argument.
 
     while True:
         msg = client.recv(BUFSIZ)
+
+        try:
+            with open("chatLogs/" + chat_Int.connected_to + ".txt", "ab") as f:
+                f.write(msg)
+            with open("chatLogs/" + chat_Int.connected_to + ".txt", "a") as f:
+                f.write('\n')
+        except:
+            print("File doesn't exist")
+            with open("chatLogs/" + chat_Int.connected_to + ".txt", "wb") as f:
+                print("File Created")
+                f.write(msg)
+            with open("chatLogs/" + chat_Int.connected_to + ".txt", "w") as f:
+                f.write('\n')
+
         f = open("symmetricKeys/" + uname + ".key", "r")
         fernet = Fernet(f.read())
         msg = fernet.decrypt(msg)
-        uname = cName
+        # conn_user = cName
+        # print(type(conn_user))
+        # print(conn_user)
 
         if msg != bytes("{quit}", "utf8"):
-            putMessage(uname+" : "+msg.decode('utf8'))
+
+            # putMessage(uname+" : "+msg.decode('utf8'))
+            putMessage(f"{(chat_Int.connected_to).capitalize()}: {msg.decode()}")
+
         else:
             client.send(bytes("{quit}", "utf8"))
             client.close()
             break
 
 
-def serverSocket():
+def serverSocket(Uport):
     HOST = ''
     PORT = Uport
     global BUFSIZ
@@ -85,6 +104,22 @@ def serverSocket():
     ACCEPT_THREAD.start()
 
     print("Server socket a correr")
+
+    # print(SERVER.accept())
+
+    # if SERVER.accept():
+    #     conn, addr = SERVER.accept()
+    #
+    #     print('Conexão aceite de:', addr)
+    #
+    #     while True:
+    #         data = conn.recv(BUFSIZ)
+    #         if not data:
+    #             break
+    #         print("Received from client: " + str(data))
+    #         data = input("Enter response: ")
+    #         conn.send(data)
+    #     conn.close()
 
 def genClientKeys():
     private_key = rsa.generate_private_key(
@@ -111,26 +146,23 @@ def genClientKeys():
         f.write(pem)
 
 
-def sendClientPK():
+def sendClientPK(username):
 
     files = {'file': open('client_public_key.pem', 'rb')}
     r = requests.post(serverUrl + "/users/pkRegister/" + username, files=files)
 
 
-def logInRequest(uname, passwd,port, tkWindow):
-    r = requests.post(url=serverUrl+"/logIn", json=login(uname, passwd, port))
+def logInRequest(logged_user, passwd, port, tkWindow):
+    r = requests.post(url=serverUrl+"/logIn", json=login(logged_user, passwd, port))
     if (r.status_code == 200):
-        global Uport
-        Uport = port
+        # global Uport
+        # Uport = port
         tkWindow.destroy()
-        global username
-        username = uname
-        sendClientPK()
-        serverSocket()
-        connectedUserInt()
-
-
-
+        # global username
+        # username = logged_user
+        sendClientPK(logged_user)
+        serverSocket(port)
+        connectedUserInt(logged_user)
 
 
 def logIn_int():
@@ -170,17 +202,12 @@ def logIn_int():
     loginButton.grid(row = 3, column = 1, sticky = W, pady = 2, padx = 2)    
     
     registerButtom = Button(tkWindow, text="Register", command=(lambda: regInt()))
-    registerButtom.grid(row = 3, column = 2, sticky = W, pady = 2, padx = 2)
+    registerButtom.grid(row=3, column=2, sticky=W, pady=2, padx=2)
     
     tkWindow.mainloop()
 
 
-
-
-
 if __name__ == "__main__":
-
-
     genClientKeys()
     logIn_int()
 
