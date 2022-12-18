@@ -117,7 +117,7 @@ def userReg():
 def pkRegister(uname):
     file = request.files['file']
 
-    savename =f"{os.getcwd()}\\clientPK\\{uname}_{file.filename}"
+    savename =f"{os.getcwd()}/clientPK/{file.filename}"
     file.save(savename)
     aux = {
         'port': UserPK_pair[uname].get('port'),
@@ -136,7 +136,7 @@ def getServerPK():
 @app.route('/users/pkRegister/<uname>', methods=['GET'])  # devolve a PK do user no server
 def userRetrieve(uname):
     currdir = getcwd()
-    return send_file(path.join(currdir,"clientPK/"+uname+'_'+uname+"_client_public_key.pem"),as_attachment=True)
+    return send_file(path.join(currdir,"clientPK/_"+uname+"_client_public_key.pem"),as_attachment=True)
 
 @app.route('/users/ip/<uname>', methods=['GET'])  # devolve a PK do user no server
 def pkRetrieve(uname):

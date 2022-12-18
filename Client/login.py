@@ -12,13 +12,13 @@ def login(uname, passwd, port):
     serverIp = '192.168.1.237'
     response = requests.get(url=f"http://{serverIp}:3000/retrieveServerPK")
     hostname = gethostname()
-    with open(f'{os.getcwd()}\\server_public_key.pem', 'wb') as f:
+    with open(f'{os.getcwd()}/server_public_key.pem', 'wb') as f:
         f.write(response.content)
-    f = open(f'{os.getcwd()}\\server_public_key.pem', "r")
+    f = open(f'{os.getcwd()}/server_public_key.pem', "r")
     while f.read() == "":
-        f = open(f'{os.getcwd()}\\server_public_key.pem', "r")
+        f = open(f'{os.getcwd()}/server_public_key.pem', "r")
 
-    with open(f'{os.getcwd()}\\server_public_key.pem', 'rb') as p:
+    with open(f'{os.getcwd()}/server_public_key.pem', 'rb') as p:
         publicKey = serialization.load_pem_public_key(
             p.read()
         )
