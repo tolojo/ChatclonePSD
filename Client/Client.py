@@ -16,7 +16,7 @@ from Users_int import *
 from login import login
 from register import regInt
 import chat_Int
-serverUrl = f"http://192.168.1.237:3000"
+serverUrl = f"http://192.168.1.75:3000"
 
 
 client_address = 0

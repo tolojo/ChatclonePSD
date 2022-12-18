@@ -19,8 +19,8 @@ from Client import getUname
 
 connected_to = ""
 logged_in_user = ""
-server_url_1 = '192.168.1.237:4000'
-server_url_2 = '192.168.1.237:5000'
+server_url_1 = '192.168.1.75:4000'
+server_url_2 = '192.168.1.75:5000'
 
 def putMessage(msg):
     msg_list.insert(tkinter.END, msg)
