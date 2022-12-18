@@ -16,7 +16,7 @@ from Users_int import *
 from login import login
 from register import regInt
 import chat_Int
-serverUrl = f"http://192.168.1.75:3000"
+serverUrl = f"http://192.168.1.74:3000"
 
 
 client_address = 0
@@ -46,6 +46,7 @@ def handle_client(client):  # Takes client socket as argument.
 
     try:
         f = open('symmetricKeys/'+uname+'.key', 'r')
+        f.close()
 
     except:
         print("File doesn't exist")
@@ -71,7 +72,6 @@ def handle_client(client):  # Takes client socket as argument.
         file.write(key)
         file.close()
         print("key file created")
-
     while True:
         msg = client.recv(BUFSIZ)
 
@@ -88,22 +88,29 @@ def handle_client(client):  # Takes client socket as argument.
             with open("chatLogs/" + chat_Int.connected_to + ".txt", "w") as f:
                 f.write('\n')
 
-        f = open("symmetricKeys/" + uname + ".key", "r")
-        fernet = Fernet(f.read())
-        msg = fernet.decrypt(msg)
+        f = open("symmetricKeys/" + uname + ".key", "rb")
+        key = f.read()
+        fernet = Fernet(key)
+        print("key: " +key.decode())
+        hmac_one = hmac.new(key, msg, digestmod='sha256').digest()
+        messageHmac = client.recv(8192)
+        print(hmac_one)
+        print(messageHmac)
+        if hmac.compare_digest(hmac_one, messageHmac):
+            msg = fernet.decrypt(msg)
         # conn_user = cName
         # print(type(conn_user))
         # print(conn_user)
 
-        if msg != bytes("{quit}", "utf8"):
+            if msg != bytes("{quit}", "utf8"):
 
-            # putMessage(uname+" : "+msg.decode('utf8'))
-            putMessage(f"{(chat_Int.connected_to).capitalize()}: {msg.decode()}")
+                # putMessage(uname+" : "+msg.decode('utf8'))
+                putMessage(f"{(chat_Int.connected_to).capitalize()}: {msg.decode()}")
 
-        else:
-            client.send(bytes("{quit}", "utf8"))
-            client.close()
-            break
+            else:
+                client.send(bytes("{quit}", "utf8"))
+                client.close()
+                break
 
 
 def serverSocket(Uport):

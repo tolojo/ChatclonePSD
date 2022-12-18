@@ -1,5 +1,6 @@
 import hashlib
 import secrets
+import hmac
 import time
 import tkinter
 from socket import socket, AF_INET, SOCK_STREAM
@@ -40,6 +41,9 @@ def sendMessage(msg, conn_user, logged_user):  # Handles sending of messages.
     # sending message to connected user
     client_socket.send(msg)
 
+    hmac_sha = hmac.new(key,msg, digestmod='sha256')
+    client_socket.send(hmac_sha.digest())
+
     # append message to file logged_user-conn_user.txt if exists, else create file and then append
     try:
         with open("chatLogs/"+conn_user+".txt", "ab") as f:
@@ -62,23 +66,6 @@ def sendMessage(msg, conn_user, logged_user):  # Handles sending of messages.
     if msg == "{quit}":
         client_socket.close()
         top.quit()
-
-
-def receive():
-
-    # Handles receiving of messages.
-    while True:
-        try:
-            msg = client_socket.recv(2048)
-            file = open(f'symmetricKeys/{logged_in_user}.key', 'rb')  # rb = read bytes
-            # file = open('symmetricKeys/' + getUname() + '.key', 'rb')  # rb = read bytes
-            key = file.read()
-            file.close()
-            fernet = Fernet(key)
-            msg = fernet.decrypt(msg)
-            msg_list.insert(tkinter.END, f"receive function {msg}")
-        except OSError:  # Possibly client has left the chat.
-            break
 
 
 def connect(port, conn_user, logged_user):
