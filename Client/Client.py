@@ -16,7 +16,7 @@ from Users_int import *
 from login import login
 from register import regInt
 import chat_Int
-serverUrl = f"http://192.168.1.75:3000"
+serverUrl = f"http://192.168.1.237:3000"
 
 
 client_address = 0
@@ -77,7 +77,7 @@ def handle_client(client):  # Takes client socket as argument.
         f = open(f"symmetricKeys/{username}_{uname}.key", "rb")
         key = f.read()
         fernet = Fernet(key)
-        print("key: " +key.decode())
+        print("key: " + key.decode())
         hmac_one = hmac.new(key, msg, digestmod='sha256').digest()
         messageHmac = client.recv(8192)
         print(hmac_one)
@@ -105,7 +105,7 @@ def handle_client(client):  # Takes client socket as argument.
             if msg != bytes("{quit}", "utf8"):
 
                 # putMessage(uname+" : "+msg.decode('utf8'))
-                putMessage(f"{(chat_Int.connected_to).capitalize()}: {msg.decode()}")
+                putMessage(msg.decode())
 
             else:
                 client.send(bytes("{quit}", "utf8"))

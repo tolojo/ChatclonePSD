@@ -19,8 +19,8 @@ from Client import getUname
 
 connected_to = ""
 logged_in_user = ""
-server_url_1 = '192.168.1.75:4000'
-server_url_2 = '192.168.1.75:5000'
+server_url_1 = '192.168.1.237:4000'
+server_url_2 = '192.168.1.237:5000'
 
 def putMessage(msg):
     msg_list.insert(tkinter.END, msg)
@@ -31,34 +31,34 @@ def sendMessage(msg, conn_user, logged_user):  # Handles sending of messages.
     # printing message to logged user's screen
     # msg_list.insert(tkinter.END, f"{logged_user.capitalize()}: {msg}")
 
-    msg_list.insert(tkinter.END, logged_user.capitalize(), ": " + msg)
-
+    msg_list.insert(tkinter.END, f"{logged_user.capitalize()}: {msg}")
+    log_message = f"{logged_user.capitalize()}: {msg}"
     # encrypting message using connected user's symmetric key
     file = open(f'symmetricKeys/{logged_user}_{conn_user}.key', 'rb')  # rb = read bytes
     key = file.read()
     file.close()
     fernet = Fernet(key)
-    # log_message = fernet.encrypt(msg.encode())
-    msg = fernet.encrypt(msg.encode())
-    print(msg)
+    log_message_enc = fernet.encrypt(log_message.encode())
+    # msg = fernet.encrypt(msg.encode())
+    print(log_message_enc)
 
     # sending message to connected user
-    client_socket.send(msg)
+    client_socket.send(log_message_enc)
 
-    hmac_sha = hmac.new(key,msg, digestmod='sha256')
+    hmac_sha = hmac.new(key, log_message_enc, digestmod='sha256')
     client_socket.send(hmac_sha.digest())
 
     # append message to file logged_user-conn_user.txt if exists, else create file and then append
     try:
         with open(f"chatLogs/{logged_user}_{conn_user}.txt", "ab") as f:
-            f.write(msg)
+            f.write(log_message_enc)
         with open(f"chatLogs/{logged_user}_{conn_user}.txt", "a") as f:
             f.write('\n')
     except:
         print("File doesn't exist")
         with open(f"chatLogs/{logged_user}_{conn_user}.txt", "wb") as f:
             print("File Created")
-            f.write(msg)
+            f.write(log_message_enc)
         with open(f"chatLogs/{logged_user}_{conn_user}.txt", "a") as f:
             f.write('\n')
 
@@ -263,13 +263,13 @@ def restore():
         lines = fi.readlines()
 
         for index, line in enumerate(lines):
-            if index % 2 != 0:
+            # if index % 2 != 0:
                 # f.write(f"{logged_user.capitalize()}: {msg}\n")
-                msg = fernet.decrypt(line)
-                msg_list.insert(tkinter.END, f"{connected_to.capitalize()}: {msg.decode()}")
-            else:
-                msg = fernet.decrypt(line)
-                msg_list.insert(tkinter.END, msg)
+            msg = fernet.decrypt(line)
+            msg_list.insert(tkinter.END, msg.decode())
+            # else:
+            #     msg = fernet.decrypt(line)
+            #     msg_list.insert(tkinter.END, msg)
 
 
 def chat_int(conn_user, logged_user):
