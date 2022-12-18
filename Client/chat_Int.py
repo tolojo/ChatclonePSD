@@ -19,8 +19,8 @@ from Client import getUname
 
 connected_to = ""
 logged_in_user = ""
-server_url_1 = '192.168.1.237:4000'
-server_url_2 = '192.168.1.237:5000'
+server_url_1 = '192.168.1.75:4000'
+server_url_2 = '192.168.1.75:5000'
 
 def putMessage(msg):
     msg_list.insert(tkinter.END, msg)
@@ -34,7 +34,7 @@ def sendMessage(msg, conn_user, logged_user):  # Handles sending of messages.
     msg_list.insert(tkinter.END, logged_user.capitalize(), ": " + msg)
 
     # encrypting message using connected user's symmetric key
-    file = open('symmetricKeys/' + conn_user + '.key', 'rb')  # rb = read bytes
+    file = open(f'symmetricKeys/{logged_user}_{conn_user}.key', 'rb')  # rb = read bytes
     key = file.read()
     file.close()
     fernet = Fernet(key)
@@ -84,7 +84,7 @@ def connect(port, conn_user, logged_user):
 
     try:
         print("uname::" + conn_user)
-        f = open("symmetricKeys/"+conn_user+".key", "r")
+        f = open(f"symmetricKeys/{logged_user}_{conn_user}.key", "r")
     except:
         print("File doesn't exist")
         key = Fernet.generate_key()
@@ -98,7 +98,7 @@ def connect(port, conn_user, logged_user):
             padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()),
             algorithm=hashes.SHA256(), label=None)
         )
-        file = open('symmetricKeys/'+conn_user+'.key', 'wb')  # wb = write bytes
+        file = open(f'symmetricKeys/{logged_user}_{conn_user}.key', 'wb')  # wb = write bytes
         file.write(key)
         print("key Generated")
         client_socket.send(encrypted_key)
@@ -256,7 +256,7 @@ def restore():
 
     enc_file.close()
 
-    with open("symmetricKeys/" + logged_in_user + ".key", "r") as f:
+    with open(f"symmetricKeys/{logged_in_user}_{connected_to}.key", "r") as f:
         fernet = Fernet(f.read())
 
     with open(f"chatLogs/{logged_in_user}_{connected_to}.txt", "r") as fi:

@@ -9,7 +9,7 @@ import requests
 from chat_Int import *
 from Client import *
 
-serverUrl = "http://192.168.1.237:3000"
+serverUrl = "http://192.168.1.75:3000"
 
 
 def refreshUsers():

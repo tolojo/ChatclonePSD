@@ -16,7 +16,7 @@ from Users_int import *
 from login import login
 from register import regInt
 import chat_Int
-serverUrl = f"http://192.168.1.237:3000"
+serverUrl = f"http://192.168.1.75:3000"
 
 
 client_address = 0
@@ -45,11 +45,11 @@ def handle_client(client):  # Takes client socket as argument.
     uname = client.recv(4096).decode('utf8')
 
     try:
-        f = open('symmetricKeys/'+uname+'.key', 'r')
+        f = open(f'symmetricKeys/{username}_{uname}.key', 'r')
         f.close()
 
     except:
-        print("File doesn't exist")
+        print("Symmetric doesn't exist")
         msg = client.recv(8172)
         print(msg)
         print(name)
@@ -68,16 +68,13 @@ def handle_client(client):  # Takes client socket as argument.
         )
         print(key)
         time.sleep(1)
-        file = open('symmetricKeys/' + uname + '.key', 'wb')  # wb = write bytes
+        file = open(f'symmetricKeys/{username}_{uname}.key', 'wb')  # wb = write bytes
         file.write(key)
         file.close()
         print("key file created")
     while True:
         msg = client.recv(BUFSIZ)
-
-
-
-        f = open("symmetricKeys/" + uname + ".key", "rb")
+        f = open(f"symmetricKeys/{username}_{uname}.key", "rb")
         key = f.read()
         fernet = Fernet(key)
         print("key: " +key.decode())
