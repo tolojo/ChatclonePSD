@@ -16,7 +16,7 @@ from Users_int import *
 from login import login
 from register import regInt
 import chat_Int
-serverUrl = f"http://192.168.1.74:3000"
+serverUrl = f"http://192.168.1.237:3000"
 
 
 client_address = 0
@@ -75,18 +75,7 @@ def handle_client(client):  # Takes client socket as argument.
     while True:
         msg = client.recv(BUFSIZ)
 
-        try:
-            with open("chatLogs/" + chat_Int.connected_to + ".txt", "ab") as f:
-                f.write(msg)
-            with open("chatLogs/" + chat_Int.connected_to + ".txt", "a") as f:
-                f.write('\n')
-        except:
-            print("File doesn't exist")
-            with open("chatLogs/" + chat_Int.connected_to + ".txt", "wb") as f:
-                print("File Created")
-                f.write(msg)
-            with open("chatLogs/" + chat_Int.connected_to + ".txt", "w") as f:
-                f.write('\n')
+
 
         f = open("symmetricKeys/" + uname + ".key", "rb")
         key = f.read()
@@ -97,7 +86,21 @@ def handle_client(client):  # Takes client socket as argument.
         print(hmac_one)
         print(messageHmac)
         if hmac.compare_digest(hmac_one, messageHmac):
+            try:
+                with open(f"chatLogs/{chat_Int.logged_in_user}_{chat_Int.connected_to}.txt", "ab") as f:
+                    f.write(msg)
+                with open(f"chatLogs/{chat_Int.logged_in_user}_{chat_Int.connected_to}.txt", "a") as f:
+                    f.write('\n')
+            except:
+                print("File doesn't exist")
+                with open(f"chatLogs/{chat_Int.logged_in_user}_{chat_Int.connected_to}.txt", "wb") as f:
+                    print("File Created")
+                    f.write(msg)
+                with open(f"chatLogs/{chat_Int.logged_in_user}_{chat_Int.connected_to}.txt", "w") as f:
+                    f.write('\n')
+
             msg = fernet.decrypt(msg)
+
         # conn_user = cName
         # print(type(conn_user))
         # print(conn_user)

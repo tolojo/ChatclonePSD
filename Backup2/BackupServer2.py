@@ -12,41 +12,44 @@ from markupsafe import escape
 app = Flask(__name__)
 
 client = MongoClient("mongodb+srv://test:test@wpp-clone.ojoiv95.mongodb.net/?retryWrites=true&w=majority")
+# db = client.get_database("userDatabase")
 db = client.get_database('shares')
 
-shares = db.Backup
+shares = db.Backup2
 
 
-@app.route('/register_share_backup1', methods=['POST'])
+@app.route('/register_share_backup2', methods=['POST'])
 def register_share():
+
     # Get the share data from the request body
     data = json.dumps(request.get_json())
     data = json.loads(data)
 
-    # Delete previous entry
     del_previous_entry = shares.delete_one({'name': data['name']})
 
     name = data["name"]
     share = data["share"].encode("latin1")
 
     # Insert the share into the database
-    register_share = shares.insert_one({"name": name, 'share2': share})
+    register_share = shares.insert_one({"name": name, 'share3': share})
 
     # Return the inserted share's ID
-    return 'Share 2 criada', 201
+    return 'Share 3 criada', 201
 
 
 @app.route(f'/get_share/<uname>', methods=['GET'])
 def get_share(uname):
+    # print(uname)
     # Find the share with the given ID
     data = shares.find_one({'name': uname})
 
     # Return the share data
-    return {'share2': data['share2'].decode('latin1')}, 200
+    return {'share3': data['share3'].decode('latin1')}, 200
 
 
 @app.route('/register_file', methods=['POST'])
 def register_encrypted_file():
+
     # Get the encrypted file data from the request body
     data = json.dumps(request.get_json())
     data = json.loads(data)
@@ -76,6 +79,6 @@ def get_encrypted_file(uname):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=4000)
+    app.run(host="0.0.0.0", port=5000)
 
 

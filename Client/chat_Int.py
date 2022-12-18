@@ -1,10 +1,14 @@
 import hashlib
+import os
 import secrets
 import hmac
 import time
 import tkinter
 from socket import socket, AF_INET, SOCK_STREAM
 from os import getcwd, path
+import json
+
+import requests
 from Crypto.Cipher import AES
 from cryptography.fernet import Fernet
 from Crypto.Protocol.SecretSharing import Shamir
@@ -15,7 +19,8 @@ from Client import getUname
 
 connected_to = ""
 logged_in_user = ""
-
+server_url_1 = '192.168.1.237:4000'
+server_url_2 = '192.168.1.237:5000'
 
 def putMessage(msg):
     msg_list.insert(tkinter.END, msg)
@@ -26,8 +31,7 @@ def sendMessage(msg, conn_user, logged_user):  # Handles sending of messages.
     # printing message to logged user's screen
     # msg_list.insert(tkinter.END, f"{logged_user.capitalize()}: {msg}")
 
-    msg_list.insert(tkinter.END,logged_user+": "+ msg)
-
+    msg_list.insert(tkinter.END, logged_user.capitalize(), ": " + msg)
 
     # encrypting message using connected user's symmetric key
     file = open('symmetricKeys/' + conn_user + '.key', 'rb')  # rb = read bytes
@@ -46,21 +50,17 @@ def sendMessage(msg, conn_user, logged_user):  # Handles sending of messages.
 
     # append message to file logged_user-conn_user.txt if exists, else create file and then append
     try:
-        with open("chatLogs/"+conn_user+".txt", "ab") as f:
+        with open(f"chatLogs/{logged_user}_{conn_user}.txt", "ab") as f:
             f.write(msg)
-        with open("chatLogs/" + conn_user + ".txt", "a") as f:
+        with open(f"chatLogs/{logged_user}_{conn_user}.txt", "a") as f:
             f.write('\n')
     except:
         print("File doesn't exist")
-        with open("chatLogs/"+conn_user+".txt", "wb") as f:
+        with open(f"chatLogs/{logged_user}_{conn_user}.txt", "wb") as f:
             print("File Created")
             f.write(msg)
-        with open("chatLogs/" + conn_user + ".txt", "a") as f:
+        with open(f"chatLogs/{logged_user}_{conn_user}.txt", "a") as f:
             f.write('\n')
-
-    # msg = fernet.decrypt(msg)
-    # msg_list.insert(tkinter.END, conn_user.encode('utf8') + b': ' + msg)
-    # msg_list.insert(tkinter.END, f"{logged_user}: {msg.decode()}")
 
     # closing connection with connected user if message is 'quit'
     if msg == "{quit}":
@@ -69,16 +69,13 @@ def sendMessage(msg, conn_user, logged_user):  # Handles sending of messages.
 
 
 def connect(port, conn_user, logged_user):
-    # print(f"Connected to client: {conn_user}")
     global logged_in_user
     global connected_to
     global client_socket
 
     logged_in_user = logged_user
     connected_to = conn_user
-    # connected_to = conn_user
 
-    # print(f"Connected to user: {conn_user}")
     print(f"Connected to user: {conn_user}; on port: {port}\n")
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect(('127.0.0.1', port))
@@ -108,11 +105,19 @@ def connect(port, conn_user, logged_user):
 
 
 def backup():
+
+    # Set the endpoint URL
+    url_backup1 = f"http://{server_url_1}/register_share_backup1"
+    url_backup2 = f"http://{server_url_2}/register_share_backup2"
+    url_backup_file_1 = f"http://{server_url_1}/register_file"
+    url_backup_file_2 = f"http://{server_url_2}/register_file"
+
     # Generate a random secret key
     random_key = secrets.token_bytes(16)
     print('Key is: ', random_key, '\n')
 
-    with open(f"chatLogs/{connected_to}.txt", "rb") as fi, open(f"chatLogs/{connected_to}_encrypted.txt", "wb") as fo:
+    with open(f"chatLogs/{logged_in_user}_{connected_to}.txt", "rb") as fi, \
+            open(f"chatLogs/{logged_in_user}_{connected_to}_encrypted.txt", "wb") as fo:
 
         # Initialize the AES cipher with the derived key
         cipher = AES.new(random_key, AES.MODE_EAX)
@@ -123,48 +128,100 @@ def backup():
         ciphertext, tag = cipher.encrypt(fi.read()), cipher.digest()
         fo.write(nonce + tag + ciphertext)
 
+    f = open(f"chatLogs/{logged_in_user}_{connected_to}_encrypted.txt", 'rb')
+    text = f.read()
+    # data = {'name': connected_to, 'file': text.decode('latin1')}
+    register_file1 = requests.post(url_backup_file_1, json={'name': f"{logged_in_user}_{connected_to}",
+                                                            'file': text.decode('latin1')})
+
+    register_file2 = requests.post(url_backup_file_2, json={'name': f"{logged_in_user}_{connected_to}",
+                                                            'file': text.decode('latin1')})
+
+    f.close()
+
     shares = Shamir.split(2, 3, random_key, ssss=False)
 
     print('Original shares')
     print(shares)
 
     # Copy share 1 to the 'userShare' folder
-    with open('userShare/share1.txt', 'wb') as f:
+    with open(f'userShare/{logged_in_user}_{connected_to}_share1.txt', 'wb') as f:
         for idx, share in shares:
             if idx == 1:
                 f.write(share)
 
-    # Copy share 2 to the 'Backup1' folder
-    with open('../Backup1/share2.txt', 'wb') as f:
-        for idx, share in shares:
-            if idx == 2:
-                f.write(share)
+    # Set the data for the request body
+    for idx, share in shares:
+        if idx == 2:
+            data = {'name': f"{logged_in_user}_{connected_to}",
+                    'share': share.decode('latin1')}
 
-    # Copy share 2 to the 'Backup2' folder
-    with open('../Backup2/share3.txt', 'wb') as f:
-        for idx, share in shares:
-            if idx == 3:
-                f.write(share)
+            # Make the POST request
+            response = requests.post(url_backup1, json=data)
+
+        if idx == 3:
+            data = {'name': f"{logged_in_user}_{connected_to}",
+                    'share': share.decode('latin1')}
+
+            # Make the POST request
+            response = requests.post(url_backup2, json=data)
 
 
 def restore():
 
-    folders = ['userShare/share1.txt', '../Backup1/share2.txt', '../Backup2/share3.txt']
+    url_restore1 = f"http://{server_url_1}/get_share/{logged_in_user}_{connected_to}"
+    url_restore2 = f"http://{server_url_2}/get_share/{logged_in_user}_{connected_to}"
+    url_restore_file_1 = f"http://{server_url_1}/get_encrypted_file/{logged_in_user}_{connected_to}"
+    url_restore_file_2 = f"http://{server_url_2}/get_encrypted_file/{logged_in_user}_{connected_to}"
 
-    with open(folders[0], 'rb') as f:
-        share1 = f.read()
-    with open(folders[1], 'rb') as f:
-        share2 = f.read()
-    with open(folders[2], 'rb') as f:
-        share3 = f.read()
+    user_share_path = f'{os.getcwd()}/userShare/{logged_in_user}_{connected_to}_share1.txt'.replace('\\', '/')
 
-    shares = [share1, share2]
+    # Verify that 'userShare/{logged_in_user}_{connected_to}_share1.txt' exists
+    server_1_status = False
+    if os.path.exists(user_share_path):
+        print("User share exists in local storage.")
+        with open(user_share_path, 'rb') as f:
+            share1 = f.read()
+
+        try:
+            # Make the GET request
+            response1 = requests.get(url_restore1)
+            share2 = response1.json()['share2'].encode('latin1')
+            shares = [share1, share2]
+
+        except:
+            server_1_status = True
+            print("Error: Server 1 is down")
+            response2 = requests.get(url_restore2)
+            share3 = response2.json()['share3'].encode('latin1')
+            shares = [share1, share3]
+
+    else:
+        print("User share does not exist in local storage.")
+
+        response1 = requests.get(url_restore1)
+        share2 = response1.json()['share2'].encode('latin1')
+
+        response2 = requests.get(url_restore2)
+        share3 = response2.json()['share3'].encode('latin1')
+
+        shares = [share2, share3]
 
     indexed_shares = []
 
     for idx, share in enumerate(shares):
-        index, share = idx, share
-        indexed_shares.append((index + 1, share))
+        if os.path.exists(user_share_path):
+            if idx == 0:
+                indexed_shares.append((idx + 1, share))
+
+            if idx == 1:
+                if server_1_status:  # Server 1 is down
+                    indexed_shares.append((idx + 2, share))
+                else:
+                    indexed_shares.append((idx + 1, share))
+
+        else:
+            indexed_shares.append((idx + 2, share))
 
     print('\nReconstructed shares')
     print(indexed_shares)
@@ -173,24 +230,36 @@ def restore():
 
     print('\nReconstructed key is: ', og_key, '\n')
 
-    with open(f"chatLogs/{connected_to}_encrypted.txt", "rb") as fi:
+    if os.path.exists(f"chatLogs/{logged_in_user}_{connected_to}_encrypted.txt"):
+        enc_file = open(f"chatLogs/{logged_in_user}_{connected_to}_encrypted.txt", 'rb')
 
-        # Initialize the AES cipher with the reconstructed key
-        # Read the encrypted file, decrypt the data and write the decrypted data to a new file
-        nonce, tag = [fi.read(16) for x in range(2)]
-        cipher = AES.new(og_key, AES.MODE_EAX, nonce=nonce)
-        try:
-            result = cipher.decrypt(fi.read())
-            cipher.verify(tag)
-            with open(f"chatLogs/{connected_to}_cleartext.txt", "wb") as fo:
-                fo.write(result)
-        except ValueError:
-            print("The shares were incorrect\n")
+    else:
+        response = requests.get(url_restore_file_1)
+        enc_text = response.json()['encrypted_file'].encode('latin1')
+
+        enc_file = open(f"chatLogs/{logged_in_user}_{connected_to}_encrypted.txt", "wb")
+        enc_file.write(enc_text)
+        enc_file.close()
+        enc_file = open(f"chatLogs/{logged_in_user}_{connected_to}_encrypted.txt", 'rb')
+
+    # Initialize the AES cipher with the reconstructed key
+    # Read the encrypted file, decrypt the data and write the decrypted data to a new file
+    nonce, tag = [enc_file.read(16) for x in range(2)]
+    cipher = AES.new(og_key, AES.MODE_EAX, nonce=nonce)
+    try:
+        result = cipher.decrypt(enc_file.read())
+        cipher.verify(tag)
+        with open(f"chatLogs/{logged_in_user}_{connected_to}.txt", "wb") as fo:
+            fo.write(result)
+    except ValueError:
+        print("The shares were incorrect\n")
+
+    enc_file.close()
 
     with open("symmetricKeys/" + logged_in_user + ".key", "r") as f:
         fernet = Fernet(f.read())
 
-    with open(f"chatLogs/{connected_to}_cleartext.txt", "r") as fi:
+    with open(f"chatLogs/{logged_in_user}_{connected_to}.txt", "r") as fi:
         lines = fi.readlines()
 
         for index, line in enumerate(lines):
@@ -206,6 +275,7 @@ def restore():
 def chat_int(conn_user, logged_user):
     global sUName
     sUName = conn_user
+
     # call function when we click in the box
     def focusIn(entry, placeholder):
         if entry.get() == placeholder:
